@@ -1,0 +1,11 @@
+{{ user.username }} 様
+
+本メールはパスワードリセット処理が行われたため送信されています。
+
+以下のリンクをクリックしてパスワードを再登録を行ってください。
+{{ protocol}}://{{ domain }}{% url 'works:password_reset_confirm' uidb64=uid token=token %}
+
+本メールに心当たりがない場合は無視してください。
+また、本メールは送信専用のため返信を行わないでください。
+
+== ArtWorksサービス 運営チーム ==

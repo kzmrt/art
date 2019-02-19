@@ -1,9 +1,17 @@
 {% load staticfiles %}
 <!DOCTYPE html>
-<html>
+<html lang="ja">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- 日時入力用 -->
+        {% load bootstrap4 %}
+        {% bootstrap_css %}
+        {% bootstrap_javascript jquery='full' %}
+        {{ form.media }}
+        <!-- 日時入力用 -->
+
 
         <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
         <link href="{% static 'css/style.css' %}" rel="stylesheet">
