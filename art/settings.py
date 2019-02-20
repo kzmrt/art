@@ -122,8 +122,7 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
-LOGIN_REDIRECT_URL = '/' # ログイン後トップページにリダイレクト
-LOGOUT_REDIRECT_URL = '/' # ログアウト後トップページにリダイレクト
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # './static'
 
 LOGGING = {
     # バージョンは「1」固定
@@ -172,7 +171,25 @@ LOGGING = {
 
 # セッションの設定
 SESSION_COOKIE_AGE = 600 # 10分
-SESSION_SAVE_EVERY_REQUEST = True # 1リクエストごとにセッション情報を更新
+# SESSION_SAVE_EVERY_REQUEST = True # 1リクエストごとにセッション情報を更新（ポーリング毎に更新されてしまう）
+
+# ログイン後のリダイレクト先URL
+LOGIN_REDIRECT_URL = '/'
+# ログアウト後のリダイレクト先URL
+#LOGOUT_REDIRECT_URL = '/'
+# メール情報のコンソール出力
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# メール送信設定
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = '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'
+EMAIL_USE_TLS = True # TLS (Transport Layer Security)設定
+DEFAULT_FROM_EMAIL = 'no_reply@agrione.co.jp' # メールのfrom
+
+# カスタムユーザモデル
+#AUTH_USER_MODEL = 'works.CustomUser'
 
 # イメージアップロード関連
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

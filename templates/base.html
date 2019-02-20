@@ -16,25 +16,89 @@
         <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
         <link href="{% static 'css/style.css' %}" rel="stylesheet">
 
-        <title>{% if request.path != '/' %}{% block title %}{% endblock %} | {% endif %}My ポートフォリオ</title>
+        <script type="text/javascript">
+            $(function() {
+                var topBtn = $('#page-top');
+                topBtn.hide();
+                //スクロールが500に達したらボタン表示
+                $(window).scroll(function () {
+                    if ($(this).scrollTop() > 500) {
+                        topBtn.fadeIn();
+                    } else {
+                        topBtn.fadeOut();
+                    }
+                });
+                //スクロールしてトップ
+                topBtn.click(function () {
+                    $('body,html').animate({
+                        scrollTop: 0
+                    }, 500);
+                    return false;
+                });
+            });
+        </script>
+
+        <title>{% block title %}Art Works{% endblock %}</title>
     </head>
     <body>
-    <div class="container">
-        <header>
-            <nav>
-            <ul>
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'logout' %}" class="logout">ログアウト</a></li>
-                {% else %}
-                    <li><a href="{% url 'login' %}" class="login">ログイン</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+        <!-- ヘッダー -->
+        <header class="py-4 border border-0">
+            <div class="container text-center">
+                <a href="{% url 'works:index' %}"><img src ="{% static 'img/logo.jpg' %}" alt="Art Works"></a>
+            </div>
         </header>
-        <div class="content">
+
+        <!-- ナビゲーションバーの設定 -->
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'works:index' %}">Art Works</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ml-auto">
+
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'works:index' %}">TOP</a>
+                        </li>
+
+                        {% url 'works:password_change' as password_change %}
+                        {% ifnotequal request.path password_change %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'works:password_change' %}" class="logout">パスワード変更</a>
+                            </li>
+                        {% endifnotequal %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}">ログアウト</a>
+                        </li>
+                    {% else %}
+                        {% url 'works:password_reset' as password_reset %}
+                        {% ifnotequal request.path password_reset %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'works:password_reset' %}">パスワードリセット</a>
+                            </li>
+                        {% endifnotequal %}
+                        {% url 'login' as login %}
+                        {% ifnotequal request.path login %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'login' %}" class="login">ログイン</a>
+                            </li>
+                        {% endifnotequal %}
+                    {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+         <main>
             {% block content %}
             {% endblock %}
-        </div>
-    </div>
+        </main>
+        <p id="page-top"><a href="#">PAGE TOP</a></p>
+            <footer class="py-4 bg-dark">
+                <div class="container text-center">
+                    <p class="text-light"><small>Copyright &copy;2019 Art Works, All Rights Reserved.</small></p>
+                </div>
+            </footer>
     </body>
 </html>
