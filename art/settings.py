@@ -189,7 +189,7 @@ EMAIL_USE_TLS = True # TLS (Transport Layer Security)設定
 DEFAULT_FROM_EMAIL = 'no_reply@agrione.co.jp' # メールのfrom
 
 # カスタムユーザモデル
-#AUTH_USER_MODEL = 'works.CustomUser'
+AUTH_USER_MODEL = 'works.CustomUser'
 
 # イメージアップロード関連
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

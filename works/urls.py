@@ -7,6 +7,9 @@ urlpatterns = [
     # トップ画面
     path('', views.IndexView.as_view(), name='index'),
 
+    # 検索結果
+    path("works/result/", views.update_query_result, name='result'),
+
     # 詳細画面
     path('works/<int:pk>/', views.DetailView.as_view(), name='detail'),
 

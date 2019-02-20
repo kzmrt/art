@@ -10,6 +10,51 @@
 
 <h1>Works List</h1>
 
+
+    <hr>
+
+    <form id="query1" name="name_form1" action="{% url 'works:result' %}" method="POST">
+        {% csrf_token %}
+
+        {% for field in calendar_form %}
+            <div class="form-group form-inline">
+                <label class="col-md-offset-2 col-md-3 control-label">{{ field.label }}:</label>
+                <div class="col-md-8">
+                    {{ field }}
+                </div>
+            </div>
+        {% endfor %}
+        <input class="btn btn-success offset-md-8 col-md-3" type="submit" id="button" name="button" value="検索">
+        <div class="offset-md-1 col-md-7 tiny">最大3000件のレコードを取得します。</div>
+    </form>
+
+    <hr>
+
+    <tbody>
+        <!-- 検索結果表示 -->
+        <div id="content">{% include 'works/result.html' %}</div>
+    </tbody>
+    <hr>
+
+    <script>
+        $('#query1').submit( function(event) {
+            event.preventDefault();
+            var form = $(this);
+            $.ajax({
+                 url: form.prop("action"),
+                 method: form.prop("method"),
+                 data: form.serialize(),
+                 timeout: 10000,
+                 dataType: "text",
+            })
+            .done( function(data) {
+                 //alert("success");
+                 $('#content').html(data);
+            })
+        });
+    </script>
+
+
 <section class="post-list">
     <ul>
         {% for work in object_list %}
