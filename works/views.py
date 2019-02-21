@@ -13,7 +13,7 @@ import bootstrap_datepicker_plus as datetimepicker
 
 logger = logging.getLogger('development')
 
-
+"""
 class IndexView(LoginRequiredMixin, generic.ListView):
 
     paginate_by = 5
@@ -24,6 +24,7 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 
     def get_form(self):
         form = super().get_form()
+        form.fields['pub_date'].widget = datetimepicker()
         return form
 
     def get_context_data(self, **kwargs):
@@ -69,6 +70,49 @@ class IndexView(LoginRequiredMixin, generic.ListView):
             return Work.objects.all()
         else:  # 一般ユーザは自分のレコードのみ表示する。
             return Work.objects.filter(author=current_user.id)
+"""
+
+
+class IndexView(LoginRequiredMixin, generic.FormView):
+    model = Work
+    template_name = 'works/index.html'
+    form_class = WorkForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Form（カレンダー入力）
+        default_data = {'start_date': (dt.now() + timedelta(days=-2)).strftime('%Y/%m/%d'),  # 開始日時は2日前
+                        'end_date': (dt.now() + timedelta(days=1)).strftime('%Y/%m/%d')}  # カレンダー初期値の設定
+        calendar_form = CalendarForm(initial=default_data)
+        calendar_form.fields["start_date"].widget = datetimepicker.DateTimePickerInput(
+            format='%Y/%m/%d %H:%M:%S',
+            # attrs={'readonly': 'true', 'class': 'form-control'}, # テキストボックス直接入力不可
+            # attrs={'class': 'form-control'},
+            options={
+                'locale': 'ja',
+                'dayViewHeaderFormat': 'YYYY年 MMMM',
+                'ignoreReadonly': True,
+                'allowInputToggle': True,
+                'minDate': '2019/1/1',  # 最小日時（データ取得開始日）
+            }
+        ).start_of('term')
+
+        calendar_form.fields["end_date"].widget = datetimepicker.DateTimePickerInput(
+            format='%Y/%m/%d %H:%M:%S',
+            # attrs={'readonly': 'true'}, # テキストボックス直接入力不可
+            options={
+                'locale': 'ja',
+                'dayViewHeaderFormat': 'YYYY年 MMMM',
+                'ignoreReadonly': True,
+                'allowInputToggle': True,
+                'maxDate': (dt.now() + timedelta(days=1)).strftime('%Y/%m/%d %H:%M:%S'),  # 最大日時（翌日）
+            }
+        ).end_of('term')
+
+        context['calendar_form'] = calendar_form
+
+        return context
 
 
 class TestMixin1(UserPassesTestMixin):
