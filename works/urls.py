@@ -4,11 +4,11 @@ from . import views
 app_name = 'works'
 
 urlpatterns = [
-    # トップ画面
-    path('', views.IndexView.as_view(), name='index'),
+    # トップ画面（検索画面）
+    path('', views.SearchView.as_view(), name='index'),
 
     # 検索結果
-    path("works/result/", views.update_query_result, name='result'),
+    path("works/result/", views.ResultView.as_view(), name='result'),
 
     # 詳細画面
     path('works/<int:pk>/', views.DetailView.as_view(), name='detail'),

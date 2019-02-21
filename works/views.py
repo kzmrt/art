@@ -10,6 +10,7 @@ from django.urls import reverse_lazy
 from .forms import CalendarForm, WorkForm
 from datetime import datetime as dt, timedelta
 import bootstrap_datepicker_plus as datetimepicker
+from django.http import HttpResponse
 
 logger = logging.getLogger('development')
 
@@ -73,7 +74,8 @@ class IndexView(LoginRequiredMixin, generic.ListView):
 """
 
 
-class IndexView(LoginRequiredMixin, generic.FormView):
+# 検索フォーム
+class SearchView(LoginRequiredMixin, generic.FormView):
     model = Work
     template_name = 'works/index.html'
     form_class = WorkForm
@@ -121,6 +123,29 @@ class TestMixin1(UserPassesTestMixin):
         current_user = self.request.user
         author_id = Work.objects.values_list('author_id', flat=True).get(pk=self.kwargs['pk']) # 作品に紐づくID
         return current_user.pk == author_id or current_user.is_superuser
+
+
+# 検索リスト
+class ResultView(generic.ListView):
+
+    paginate_by = 3
+    ordering = ['-updated_at']
+    template_name = 'works/result.html'
+    model = Work
+
+    def post(self, request, *args, **kwargs):
+        return render(request, 'works/result.html', {'work_list': self.get_queryset(request=request), })
+
+    def get_queryset(self, request):
+        start = request.POST.getlist("start_date")  # 入力した値を取得
+        end = request.POST.getlist("end_date")  # 入力した値を取得
+        logger.debug("start = " + str(start[0]))
+        logger.debug("end = " + str(end[0]))
+        current_user = self.request.user
+        if current_user.is_superuser:  # スーパーユーザの場合、リストにすべてを表示する。
+            return Work.objects.all()
+        else:  # 一般ユーザは自分のレコードのみ表示する。
+            return Work.objects.filter(author=current_user.id)
 
 
 def update_query_result(request, pk):
