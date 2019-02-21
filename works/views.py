@@ -11,22 +11,38 @@ from .forms import CalendarForm, WorkForm
 from datetime import datetime as dt, timedelta
 import bootstrap_datepicker_plus as datetimepicker
 from django.http import HttpResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic.edit import ModelFormMixin
 
 logger = logging.getLogger('development')
 
-"""
-class IndexView(LoginRequiredMixin, generic.ListView):
 
-    paginate_by = 5
+class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
+
+    paginate_by = 2
     ordering = ['-updated_at']
     template_name = 'works/index.html'
     form_class = WorkForm
     model = Work
 
-    def get_form(self):
-        form = super().get_form()
-        form.fields['pub_date'].widget = datetimepicker()
-        return form
+    def get(self, request, *args, **kwargs): # これは必要
+        self.object = None
+        self.form = self.get_form(self.form_class)
+        # Explicitly states what get to call:
+        return generic.ListView.get(self, request, *args, **kwargs)
+
+    # def post(self, request, *args, **kwargs):
+    #     # When the form is submitted, it will enter here
+    #     self.object = None
+    #     self.form = self.get_form(self.form_class)
+    #
+    #     if self.form.is_valid():
+    #         self.object = self.form.save()
+    #         # Here ou may consider creating a new instance of form_class(),
+    #         # so that the form will come clean.
+    #
+    #     # Whether the form validates or not, the view will be rendered by get()
+    #     return self.get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -44,8 +60,7 @@ class IndexView(LoginRequiredMixin, generic.ListView):
                 'dayViewHeaderFormat': 'YYYY年 MMMM',
                 'ignoreReadonly': True,
                 'allowInputToggle': True,
-                'minDate': '2019/2/20',  # 最小日時（データ取得開始日）
-                # 'defaultDate': '2018/10/22', # 初期表示
+                'minDate': '2019/1/1',  # 最小日時（データ取得開始日）
             }
         ).start_of('term')
 
@@ -66,11 +81,19 @@ class IndexView(LoginRequiredMixin, generic.ListView):
         return context
 
     def get_queryset(self):
-        current_user = self.request.user
-        if current_user.is_superuser:  # スーパーユーザの場合、リストにすべてを表示する。
-            return Work.objects.all()
-        else:  # 一般ユーザは自分のレコードのみ表示する。
-            return Work.objects.filter(author=current_user.id)
+        if "start_date" in self.request.GET:
+            start = self.request.GET.get("start_date")
+            logger.debug("start_date = " + start)
+            return Work.objects.all()[:3]
+        else:
+            logger.debug("start_date is not specified.")
+
+            current_user = self.request.user
+            if current_user.is_superuser:  # スーパーユーザの場合、リストにすべてを表示する。
+                return Work.objects.all()
+            else:  # 一般ユーザは自分のレコードのみ表示する。
+                return Work.objects.filter(author=current_user.id)
+
 """
 
 
@@ -115,7 +138,7 @@ class SearchView(LoginRequiredMixin, generic.FormView):
         context['calendar_form'] = calendar_form
 
         return context
-
+"""
 
 class TestMixin1(UserPassesTestMixin):
     def test_func(self):
@@ -128,13 +151,24 @@ class TestMixin1(UserPassesTestMixin):
 # 検索リスト
 class ResultView(generic.ListView):
 
-    paginate_by = 3
-    ordering = ['-updated_at']
+    #paginate_by = 3
+    #ordering = ['-updated_at']
     template_name = 'works/result.html'
     model = Work
+    #context_object_name = 'work_list'
+    #queryset = Work.objects.all()
 
     def post(self, request, *args, **kwargs):
-        return render(request, 'works/result.html', {'work_list': self.get_queryset(request=request), })
+        work_list = self.get_queryset(request=request)
+        page = request.GET.get('page', 1)
+        paginator = Paginator(work_list, 3)
+        try:
+            work_list = paginator.page(page)
+        except PageNotAnInteger:
+            work_list = paginator.page(1)
+        except EmptyPage:
+            work_list = paginator.page(paginator.num_pages)
+        return render(request, 'works/result.html', {'work_list': work_list, })
 
     def get_queryset(self, request):
         start = request.POST.getlist("start_date")  # 入力した値を取得

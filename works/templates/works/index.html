@@ -12,6 +12,21 @@
 
     <hr>
 
+    <form method="POST>
+        {% csrf_token %}
+        {% for field in calendar_form %}
+            <div class="form-group form-inline">
+                <label class="col-md-offset-2 col-md-3 control-label">{{ field.label }}:</label>
+                <div class="col-md-8">
+                    {{ field }}
+                </div>
+            </div>
+        {% endfor %}
+        <input class="btn btn-success offset-md-8 col-md-3" type="submit" id="button" name="button" value="検索">
+        <div class="offset-md-1 col-md-7 tiny">最大3000件のレコードを取得します。</div>
+    </form>
+
+<!--
     <form id="query1" name="name_form1" action="{% url 'works:result' %}" method="POST">
         {% csrf_token %}
 
@@ -30,7 +45,6 @@
     <hr>
 
     <tbody>
-        <!-- 検索結果表示 -->
         <div id="content">{% include 'works/result.html' %}</div>
     </tbody>
     <hr>
@@ -52,13 +66,16 @@
             })
         });
     </script>
+-->
 
-<!--
 <section class="post-list">
     <ul>
         {% for work in object_list %}
         <li>
-            <h2><a href="{% url 'monitor:detail' work.pk %}">{{ work.title }}</a></h2>
+            <h2>{{ work.title }}</h2>
+            <h2>{{ work.authorName }}</h2>
+            <h2>{{ work.material }}</h2>
+            <h2>{{ work.price }}</h2>
             <p>{{ work.memo }}</p>
         </li>
         {% empty %}
@@ -88,6 +105,6 @@
     </ul>
 </section>
 {% endif %}
--->
+
 </div>
 {% endblock %}
