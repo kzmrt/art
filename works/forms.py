@@ -20,9 +20,8 @@ class CustomUserChangeForm(UserChangeForm):
 class WorkForm(forms.ModelForm):
     class Meta:
         model = Work
-        fields = ('create_datetime',)
+        fields = ('create_datetime',) # DateTimePickerInputを使用するために必要
         widgets = {
-            # スマホ対応版 キーボード入力不可
             'create_datetime': datetimepicker.DateTimePickerInput(
                 format='%Y-%m-%d %H:%M:%S',
                 attrs={'readonly': 'true'},
@@ -35,12 +34,30 @@ class WorkForm(forms.ModelForm):
             ),
         }
 
+        # fields = ('title','authorName','material','price','memo',)
+
 
 class CalendarForm(forms.Form):
 
+    title = forms.CharField(
+        initial='',
+        label='タイトル',
+        required = False, # 必須ではない
+    )
+    authorName = forms.CharField(
+        initial='',
+        label='作者',
+        required=False,  # 必須ではない
+    )
+    material = forms.CharField(
+        initial='',
+        label='画材',
+        required=False,  # 必須ではない
+    )
     start_date = forms.DateField(
         initial='',
         label='開始日時',
+        required=False,  # 必須ではない
         widget=datetimepicker.DateTimePickerInput(
             format='%Y/%m/%d %H:%M:%S',
             # attrs={'readonly': 'true'}, # テキストボックス直接入力不可
@@ -58,6 +75,7 @@ class CalendarForm(forms.Form):
     end_date = forms.DateField(
         label='終了日時',
         initial='', # 初期値
+        required=False,  # 必須ではない
         widget=datetimepicker.DateTimePickerInput(
             format='%Y/%m/%d %H:%M:%S',
             # attrs={'readonly': 'true'}, # テキストボックス直接入力不可

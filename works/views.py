@@ -19,37 +19,66 @@ logger = logging.getLogger('development')
 
 class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
 
-    paginate_by = 2
-    ordering = ['-updated_at']
+    paginate_by = 3
+    #ordering = ['-updated_at']
     template_name = 'works/index.html'
     form_class = WorkForm
     model = Work
 
     def get(self, request, *args, **kwargs): # これは必要
         self.object = None
-        self.form = self.get_form(self.form_class)
+        #self.form = self.get_form(self.form_class)
         # Explicitly states what get to call:
         return generic.ListView.get(self, request, *args, **kwargs)
 
-    # def post(self, request, *args, **kwargs):
-    #     # When the form is submitted, it will enter here
-    #     self.object = None
-    #     self.form = self.get_form(self.form_class)
-    #
-    #     if self.form.is_valid():
-    #         self.object = self.form.save()
-    #         # Here ou may consider creating a new instance of form_class(),
-    #         # so that the form will come clean.
-    #
-    #     # Whether the form validates or not, the view will be rendered by get()
-    #     return self.get(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        # When the form is submitted, it will enter here
+        self.object = None
+        self.form = self.get_form(self.form_class)
+
+        # if self.form.is_valid():
+        #     self.object = self.form.save()
+            # Here ou may consider creating a new instance of form_class(),
+            # so that the form will come clean.
+
+        form_value = [
+            self.request.POST.getlist("title")[0],
+            self.request.POST.getlist("authorName")[0],
+            self.request.POST.getlist("material")[0],
+            self.request.POST.getlist("start_date"),
+            self.request.POST.getlist("end_date"),
+        ]
+        request.session['form_value'] = form_value
+
+        # Whether the form validates or not, the view will be rendered by get()
+        return self.get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Form（カレンダー入力）
-        default_data = {'start_date': (dt.now() + timedelta(days=-2)).strftime('%Y/%m/%d'),  # 開始日時は2日前
-                        'end_date': (dt.now() + timedelta(days=1)).strftime('%Y/%m/%d')}  # カレンダー初期値の設定
+        # Form（カレンダー入力など）
+        title = ''
+        authorName = ''
+        material = ''
+        start = ''
+        end = ''
+        # sessionに値がある場合、その値をセットする。（ページングしてもform値が変わらないように）
+        if 'form_value' in self.request.session:
+            form_value = self.request.session['form_value']
+            title = form_value[0]
+            authorName = form_value[1]
+            material = form_value[2]
+            start = form_value[3]
+            end = form_value[4]
+        # else:
+            # start = (dt.now() + timedelta(days=-2)).strftime('%Y/%m/%d')
+            # end = (dt.now() + timedelta(days=1)).strftime('%Y/%m/%d')
+
+        default_data = {'title': title,  # タイトル
+                        'authorName': authorName,  # 作者名
+                        'material': material,  # 画材
+                        'start_date': start,  # 開始日時
+                        'end_date': end}  # 終了日時
         calendar_form = CalendarForm(initial=default_data)
         calendar_form.fields["start_date"].widget = datetimepicker.DateTimePickerInput(
             format='%Y/%m/%d %H:%M:%S',
@@ -81,18 +110,34 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
         return context
 
     def get_queryset(self):
-        if "start_date" in self.request.GET:
-            start = self.request.GET.get("start_date")
-            logger.debug("start_date = " + start)
-            return Work.objects.all()[:3]
-        else:
-            logger.debug("start_date is not specified.")
+        # sessionに値がある場合、その値でクエリ発行する。
+        if 'form_value' in self.request.session:
+            form_value = self.request.session['form_value']
+            title = form_value[0]
+            authorName = form_value[1]
+            material = form_value[2]
+            start = form_value[3]
+            end = form_value[4]
 
             current_user = self.request.user
             if current_user.is_superuser:  # スーパーユーザの場合、リストにすべてを表示する。
-                return Work.objects.all()
+                if (not start[0] and not end[0] != 0): # 日時が空ではない場合
+                    work_data = Work.objects.filter(create_datetime__range=(start[0].replace('/', '-'), end[0].replace('/', '-')))
+                else:
+                    work_data = Work.objects.all()
+                return work_data
             else:  # 一般ユーザは自分のレコードのみ表示する。
-                return Work.objects.filter(author=current_user.id)
+                if (not start[0] and not end[0] != 0):  # 日時が空ではない場合
+                    work_data = Work.objects.filter(create_datetime__range=(start[0].replace('/', '-'), end[0].replace('/', '-')), author=current_user.id)
+                else:
+                    work_data = Work.objects.filter(author=current_user.id)
+                return work_data
+                #return Work.objects.filter(author=current_user.id)
+        else:
+            # 何も返さない
+            return Work.objects.none()
+
+
 
 """
 
