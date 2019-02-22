@@ -41,14 +41,20 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
             # Here ou may consider creating a new instance of form_class(),
             # so that the form will come clean.
 
+        logger.debug("test = " + self.request.POST.get('title', None))
+
         form_value = [
-            self.request.POST.getlist("title")[0],
-            self.request.POST.getlist("authorName")[0],
-            self.request.POST.getlist("material")[0],
-            self.request.POST.getlist("start_date"),
-            self.request.POST.getlist("end_date"),
+            self.request.POST.get('title', None),
+            self.request.POST.get('authorName', None),
+            self.request.POST.get('material', None),
+            self.request.POST.get('start_date', None),
+            self.request.POST.get('end_date', None),
         ]
         request.session['form_value'] = form_value
+
+        # 検索時にページネーションに関連したエラーを防ぐ
+        self.request.GET = self.request.GET.copy()
+        self.request.GET.clear()
 
         # Whether the form validates or not, the view will be rendered by get()
         return self.get(request, *args, **kwargs)
