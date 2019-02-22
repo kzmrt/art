@@ -10,8 +10,6 @@
 
     <h1>Works List</h1>
 
-    <hr>
-
     <form method="POST">
         {% csrf_token %}
         {% for field in calendar_form %}
@@ -26,23 +24,24 @@
         <div class="offset-md-1 col-md-7 tiny">最大3000件のレコードを取得します。</div>
     </form>
 
+    <hr>
 
-<section class="post-list">
-    <ul>
-        {% for work in object_list %}
-        <li>
-            <h5>{{ work.title }}</h5>
-            <h5>{{ work.authorName }}</h5>
-            <h5>{{ work.material }}</h5>
-            <h5>{{ work.price }}</h5>
-            <h5>{{ work.memo }}</h5>
-        </li>
-        {% empty %}
-        <li class="no-post">
-            <p>No work yet.</p>
-        {% endfor %}
-    </ul>
-</section>
+    <section class="post-list">
+        <ul>
+            {% for work in object_list %}
+            <li>
+                <h5>{{ work.title }}</h5>
+                <h5>{{ work.authorName }}</h5>
+                <h5>{{ work.material }}</h5>
+                <h5>{{ work.price }}</h5>
+                <h5>{{ work.memo }}</h5>
+            </li>
+            {% empty %}
+            <li class="no-post">
+                <p>検索にヒットしませんでした。</p>
+            {% endfor %}
+        </ul>
+    </section>
 
 {% if is_paginated %}
 <section class="pagination">

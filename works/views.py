@@ -13,6 +13,7 @@ import bootstrap_datepicker_plus as datetimepicker
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.edit import ModelFormMixin
+from django.db.models import Q
 
 logger = logging.getLogger('development')
 
@@ -119,20 +120,27 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
             start = form_value[3]
             end = form_value[4]
 
+            # 検索条件
+            term_title = Q()
+            term_authorName = Q()
+            term_material = Q()
+            term_create_datetime = Q()
+            term_user = Q()
+
             current_user = self.request.user
-            if current_user.is_superuser:  # スーパーユーザの場合、リストにすべてを表示する。
-                if (not start[0] and not end[0] != 0): # 日時が空ではない場合
-                    work_data = Work.objects.filter(create_datetime__range=(start[0].replace('/', '-'), end[0].replace('/', '-')))
-                else:
-                    work_data = Work.objects.all()
-                return work_data
-            else:  # 一般ユーザは自分のレコードのみ表示する。
-                if (not start[0] and not end[0] != 0):  # 日時が空ではない場合
-                    work_data = Work.objects.filter(create_datetime__range=(start[0].replace('/', '-'), end[0].replace('/', '-')), author=current_user.id)
-                else:
-                    work_data = Work.objects.filter(author=current_user.id)
-                return work_data
-                #return Work.objects.filter(author=current_user.id)
+            if not current_user.is_superuser:  # スーパーユーザの場合、リストにすべてを表示する。
+                term_user = Q(author=current_user.id)
+            if len(title) != 0 and title[0]:
+                term_title = Q(title__icontains=title)
+            if len(authorName) != 0 and authorName[0]:
+                term_authorName = Q(authorName__contains=authorName)
+            if len(material) != 0 and material[0]:
+                term_material = Q(material__icontains=material)
+            if (len(start) != 0 and len(end) != 0) and (start[0] and end[0]): # 日時が空ではない場合
+                term_create_datetime = Q(create_datetime__range=(start[0].replace('/', '-'), end[0].replace('/', '-')))
+
+            return Work.objects.select_related().filter(term_title & term_authorName & term_material & term_create_datetime & term_user)
+
         else:
             # 何も返さない
             return Work.objects.none()
