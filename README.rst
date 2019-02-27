@@ -3,7 +3,7 @@
 Art Works
 =======================
 
-This is a Greenhouse Monitor project.
+This is a Art Works project.
 
 
 Requirement
@@ -12,7 +12,7 @@ Requirement
 :Python: 3.7.0
 :Django: 2.1.7
 :django-bootstrap4: 0.0.7
-
+:django-bootstrap-datepicker-plus: 3.0.5
 
 Quick start
 ===========
@@ -24,6 +24,10 @@ Quick start
 
     python manage.py migrate
 
-3. start server::
+3. migrate model::
+
+    python manage.py createsuperuser
+
+4. start server::
 
     python manage.py runserver
