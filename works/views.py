@@ -19,7 +19,7 @@ logger = logging.getLogger('development')
 
 class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
 
-    paginate_by = 3
+    paginate_by = 5
     #ordering = ['-updated_at']
     template_name = 'works/index.html'
     form_class = WorkForm
@@ -27,21 +27,11 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
 
     def get(self, request, *args, **kwargs): # これは必要
         self.object = None
-        #self.form = self.get_form(self.form_class)
-        # Explicitly states what get to call:
         return generic.ListView.get(self, request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        # When the form is submitted, it will enter here
         self.object = None
         self.form = self.get_form(self.form_class)
-
-        # if self.form.is_valid():
-        #     self.object = self.form.save()
-            # Here ou may consider creating a new instance of form_class(),
-            # so that the form will come clean.
-
-        logger.debug("test = " + self.request.POST.get('title', None))
 
         form_value = [
             self.request.POST.get('title', None),
@@ -56,7 +46,6 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
         self.request.GET = self.request.GET.copy()
         self.request.GET.clear()
 
-        # Whether the form validates or not, the view will be rendered by get()
         return self.get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

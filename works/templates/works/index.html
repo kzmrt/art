@@ -3,12 +3,7 @@
 {% block content %}
 <div class="col-lg-6 offset-lg-3">
 
-    {% if user.is_authenticated %}
-        <h1>ユーザ名</h1>
-        <p class="user-name">{{ user.username }} でログイン中です。</p>
-    {% endif %}
-
-    <h1>Works List</h1>
+    <h1>Search</h1>
 
     <form method="POST">
         {% csrf_token %}
@@ -21,41 +16,33 @@
             </div>
         {% endfor %}
         <input class="btn btn-success offset-md-8 col-md-3" type="submit" id="button" name="button" value="検索">
-        <div class="offset-md-1 col-md-7 tiny">最大3000件のレコードを取得します。</div>
     </form>
 
     <hr>
 
     <section class="post-list">
-        <ul>
-            {% for work in object_list %}
-            <li>
-                <table class="table table-bordered">
-                    <tbody>
-                        <tr>
-                            <th width="35%">作品タイトル</th>
-                            <td width="65%">{{ work.title }}</td>
-                        </tr>
-                        <tr>
-                            <th>作者</th>
-                            <td>{{ work.authorName }}</td>
-                        </tr>
-                        <tr>
-                            <th>画材</th>
-                            <td>{{ work.material }}</td>
-                        </tr>
-                        <tr>
-                            <th>価格</th>
-                            <td>{{ work.price }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </li>
-            {% empty %}
-            <li class="no-post">
-                <p>検索にヒットしませんでした。</p>
-            {% endfor %}
-        </ul>
+        {% if object_list|length == 0 %}
+            <p>検索結果が存在しません。</p>
+        {% else %}
+            <table class="table table-hover table-bordered">
+                <tr>
+                    <th>作品タイトル</th>
+                    <th>作者</th>
+                    <th>画材</th>
+                    <th>価格</th>
+                </tr>
+                <tbody>
+                {% for work in object_list %}
+                    <tr>
+                        <td width="25%"><a href="{% url 'works:detail' work.pk %}">{{ work.title }}</a></td>
+                        <td width="25%">{{ work.authorName }}</td>
+                        <td width="25%">{{ work.material }}</td>
+                        <td width="25%">{{ work.price }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
     </section>
 
     <div class="col-6 offset-3 justify-content-center">
