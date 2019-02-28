@@ -360,3 +360,14 @@ footer {
     text-decoration: none;
     background: #999;
 }
+
+/* フォーム入力 */
+#id_title, #id_authorName, #id_material, #id_price, #id_memo {
+    width: 280px;
+    height: 32px;
+}
+
+#id_create_datetime, #id_start_date, #id_end_date {
+    width: 240px;
+    height: 32px;
+}

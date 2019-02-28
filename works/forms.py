@@ -18,23 +18,56 @@ class CustomUserChangeForm(UserChangeForm):
 
 
 class WorkForm(forms.ModelForm):
+    author = forms.ModelChoiceField(CustomUser.objects.all(), empty_label=None) # 空選択肢を除外
+
     class Meta:
         model = Work
-        fields = ('create_datetime',) # DateTimePickerInputを使用するために必要
+        fields = ('title','authorName','material','price','memo','create_datetime','author',)
+
+        title = forms.CharField(
+            initial='',
+            label='タイトル',
+            required=True,  # 必須
+            max_length=255,
+        )
+        authorName = forms.CharField(
+            initial='',
+            label='作者',
+            required=True,  # 必須
+            max_length=255,
+        )
+        material = forms.CharField(
+            initial='',
+            label='画材',
+            required=True,  # 必須
+            max_length=255,
+        )
+        price = forms.CharField(
+            initial='',
+            label='価格',
+            required=True,  # 必須
+            max_length=255,
+        )
+        memo = forms.CharField(
+            initial='',
+            label='メモ',
+            required=False,  # 必須ではない
+            max_length=255,
+        )
         widgets = {
             'create_datetime': datetimepicker.DateTimePickerInput(
-                format='%Y-%m-%d %H:%M:%S',
+                format='%Y-%m-%d',
                 attrs={'readonly': 'true'},
                 options={
                     'locale': 'ja',
                     'dayViewHeaderFormat': 'YYYY年 MMMM',
                     'ignoreReadonly': True,
                     'allowInputToggle': True,
+                    'maxDate': (dt.now() + timedelta(days = 1)).strftime('%Y/%m/%d'),  # 最大日時（翌日）
+                    # 'defaultDate': (dt.now() + timedelta(days = -1)).strftime('%Y/%m/%d %H:%M:%S'), # 初期値はmodelで定義した値が採用される
                 }
             ),
         }
-
-        # fields = ('title','authorName','material','price','memo',)
 
 
 class CalendarForm(forms.Form):
@@ -59,7 +92,7 @@ class CalendarForm(forms.Form):
         label='開始日時',
         required=False,  # 必須ではない
         widget=datetimepicker.DateTimePickerInput(
-            format='%Y/%m/%d %H:%M:%S',
+            format='%Y/%m/%d',
             # attrs={'readonly': 'true'}, # テキストボックス直接入力不可
             # attrs={'class': 'form-control'},
             options={
@@ -77,14 +110,14 @@ class CalendarForm(forms.Form):
         initial='', # 初期値
         required=False,  # 必須ではない
         widget=datetimepicker.DateTimePickerInput(
-            format='%Y/%m/%d %H:%M:%S',
+            format='%Y/%m/%d',
             # attrs={'readonly': 'true'}, # テキストボックス直接入力不可
             options={
                 'locale': 'ja',
                 'dayViewHeaderFormat': 'YYYY年 MMMM',
                 'ignoreReadonly': True,
                 'allowInputToggle': True,
-                'maxDate': (dt.now() + timedelta(days = 1)).strftime('%Y/%m/%d %H:%M:%S'),  # 最大日時（翌日）
+                'maxDate': (dt.now() + timedelta(days = 1)).strftime('%Y/%m/%d'),  # 最大日時（翌日）
             }
         ).end_of('term'),
     )

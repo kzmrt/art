@@ -1,6 +1,6 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from django.views import generic
-from .models import Work
+from .models import Work, CustomUser
 from django.contrib.auth.mixins import LoginRequiredMixin
 import logging
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -13,6 +13,7 @@ import bootstrap_datepicker_plus as datetimepicker
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.edit import ModelFormMixin
 from django.db.models import Q
+from django.contrib import messages
 
 logger = logging.getLogger('development')
 
@@ -20,7 +21,6 @@ logger = logging.getLogger('development')
 class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
 
     paginate_by = 5
-    #ordering = ['-updated_at']
     template_name = 'works/index.html'
     form_class = WorkForm
     model = Work
@@ -73,7 +73,7 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
                         'end_date': end}  # 終了日時
         calendar_form = CalendarForm(initial=default_data)
         calendar_form.fields["start_date"].widget = datetimepicker.DateTimePickerInput(
-            format='%Y/%m/%d %H:%M:%S',
+            format='%Y/%m/%d',
             # attrs={'readonly': 'true', 'class': 'form-control'}, # テキストボックス直接入力不可
             # attrs={'class': 'form-control'},
             options={
@@ -82,11 +82,12 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
                 'ignoreReadonly': True,
                 'allowInputToggle': True,
                 'minDate': '2019/1/1',  # 最小日時（データ取得開始日）
+                'defaultDate': start,  # 初期表示
             }
         ).start_of('term')
 
         calendar_form.fields["end_date"].widget = datetimepicker.DateTimePickerInput(
-            format='%Y/%m/%d %H:%M:%S',
+            format='%Y/%m/%d',
             # attrs={'readonly': 'true'}, # テキストボックス直接入力不可
             options={
                 'locale': 'ja',
@@ -94,6 +95,7 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
                 'ignoreReadonly': True,
                 'allowInputToggle': True,
                 'maxDate': (dt.now() + timedelta(days=1)).strftime('%Y/%m/%d %H:%M:%S'),  # 最大日時（翌日）
+                'defaultDate': end,  # 初期表示
             }
         ).end_of('term')
 
@@ -112,25 +114,35 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
             end = form_value[4]
 
             # 検索条件
-            term_title = Q()
-            term_authorName = Q()
-            term_material = Q()
-            term_create_datetime = Q()
-            term_user = Q()
+            condition_title = Q()
+            condition_authorName = Q()
+            condition_material = Q()
+            condition_create_datetime = Q()
+            condition_start_datetime = Q()
+            condition_end_datetime = Q()
+            condition_user = Q()
 
             current_user = self.request.user
             if not current_user.is_superuser:  # スーパーユーザの場合、リストにすべてを表示する。
-                term_user = Q(author=current_user.id)
+                condition_user = Q(author=current_user.id)
             if len(title) != 0 and title[0]:
-                term_title = Q(title__icontains=title)
+                condition_title = Q(title__icontains=title)
             if len(authorName) != 0 and authorName[0]:
-                term_authorName = Q(authorName__contains=authorName)
+                condition_authorName = Q(authorName__contains=authorName)
             if len(material) != 0 and material[0]:
-                term_material = Q(material__icontains=material)
-            if (len(start) != 0 and len(end) != 0) and (start[0] and end[0]): # 日時が空ではない場合
-                term_create_datetime = Q(create_datetime__range=(start[0].replace('/', '-'), end[0].replace('/', '-')))
+                condition_material = Q(material__icontains=material)
+            if (len(start) != 0 and len(end) != 0) and (start and end): # 日時が空ではない場合
+                condition_create_datetime = Q(create_datetime__range=(start.replace('/', '-'), end.replace('/', '-')))
+            elif len(start) != 0 and start: # 開始日時が空ではない場合
+                condition_start_datetime = Q(create_datetime__gte=start.replace('/', '-'))
+            elif len(end) != 0 and end: # 終了日時が空ではない場合
+                condition_end_datetime = Q(create_datetime__lte=end.replace('/', '-'))
 
-            return Work.objects.select_related().filter(term_title & term_authorName & term_material & term_create_datetime & term_user)
+            return Work.objects.select_related().filter(condition_title & condition_authorName & condition_material
+                                                        & condition_create_datetime
+                                                        & condition_start_datetime
+                                                        & condition_end_datetime
+                                                        & condition_user)
 
         else:
             # 何も返さない
@@ -146,8 +158,36 @@ class TestMixin1(UserPassesTestMixin):
 
 
 class DetailView(TestMixin1, generic.DetailView):
+    # 詳細画面
     model = Work
     template_name = 'works/detail.html'
+
+
+class CreateView(generic.CreateView):
+    # 登録画面
+    model = Work
+    form_class = WorkForm
+    # success_url = reverse_lazy('works:index')
+    # success_url = reverse_lazy('works:detail', kwargs={'pk': pk})
+
+    def get_success_url(self): # TODO: 詳細画面にリダイレクトする。
+        return reverse('works:detail', kwargs={'pk': self.kwargs['pk']})
+
+    def get_form_kwargs(self, *args, **kwargs):
+        form_kwargs = super().get_form_kwargs(*args, **kwargs)
+        form_kwargs['initial'] = {'author': self.request.user} # フォームに初期値を設定する。
+        return form_kwargs
+
+    def form_valid(self, form):
+        # if not form.instance.author_id: # 制作者が未選択の場合
+        #     form.instance.author_id = self.request.user.id
+        result = super().form_valid(form)
+        messages.success(self.request, '登録しました。')
+        return result
+
+    def form_invalid(self, form):
+        result = super().form_invalid(form)
+        return result
 
 
 class PasswordChange(LoginRequiredMixin, PasswordChangeView):

@@ -3,14 +3,22 @@
 {% block content %}
 <div class="col-lg-6 offset-lg-3">
 
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
     <h1>Search</h1>
 
-    <form method="POST">
+    <form method="post">
         {% csrf_token %}
         {% for field in calendar_form %}
             <div class="form-group form-inline">
                 <label class="col-offset-2 col-3 control-label">{{ field.label }}:</label>
-                <div class="col-8">
+                <div class="">
                     {{ field }}
                 </div>
             </div>

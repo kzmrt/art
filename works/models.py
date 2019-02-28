@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 
 
 class CustomUser(AbstractUser):
@@ -23,15 +23,16 @@ class Work(models.Model):
     author = models.ForeignKey(
         'works.CustomUser',
         on_delete=models.CASCADE,
+        verbose_name='制作者',
     )
     create_datetime = models.DateTimeField(verbose_name='作成年月日',
-                                         default=dt.strptime('2001-01-01 00:00:00', '%Y-%m-%d %H:%M:%S'))
+                                         default=(dt.now() + timedelta(days = -1)).strftime('%Y/%m/%d %H:%M:%S'))
     created_at = models.DateTimeField(verbose_name='登録日時', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='更新日時', auto_now=True)
 
     def __str__(self):
         return self.title + ',' + self.authorName + ',' + self.material + ',' + self.price + ',' + self.memo \
-               + ',' + self.create_datetime.strftime('%Y/%m/%d')
+               + ',' + self.create_datetime
 
     @staticmethod
     def get_absolute_url(self):

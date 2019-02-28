@@ -63,6 +63,12 @@
                             <a class="nav-link" href="{% url 'works:index' %}">TOP</a>
                         </li>
 
+                        {% url 'works:create' as create %}
+                        {% ifnotequal request.path create %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'works:create' %}" class="logout">新規登録</a>
+                            </li>
+                        {% endifnotequal %}
                         {% url 'works:password_change' as password_change %}
                         {% ifnotequal request.path password_change %}
                             <li class="nav-item">
