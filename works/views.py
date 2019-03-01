@@ -1,18 +1,20 @@
 from django.shortcuts import render, redirect, reverse
 from django.views import generic
-from .models import Work, CustomUser
+from .models import Work, CustomUser, Image
 from django.contrib.auth.mixins import LoginRequiredMixin
 import logging
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView, PasswordResetView, \
     PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.urls import reverse_lazy
-from .forms import CalendarForm, WorkForm
+from .forms import CalendarForm, WorkForm, WorkSetForm
 from datetime import datetime as dt, timedelta
 import bootstrap_datepicker_plus as datetimepicker
 from django.views.generic.edit import ModelFormMixin
 from django.db.models import Q
 from django.contrib import messages
+import os
+from art import settings
 
 logger = logging.getLogger('development')
 
@@ -165,7 +167,8 @@ class DetailView(TestMixin1, generic.DetailView):
 class CreateView(LoginRequiredMixin, generic.CreateView):
     # 登録画面
     model = Work
-    form_class = WorkForm
+    # form_class = WorkForm
+    form_class = WorkSetForm
 
     def get_success_url(self):  # 詳細画面にリダイレクトする。
         return reverse('works:detail', kwargs={'pk': self.object.pk})
@@ -178,13 +181,54 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
     def form_valid(self, form):
         # if not form.instance.author_id: # 制作者が未選択の場合
         #     form.instance.author_id = self.request.user.id
-        result = super().form_valid(form)
+
+        # result = super().form_valid(form)
+
+        # TODO: 画像を登録する場合、作品IDでディレクトリを作成してアップロード。
+        # アップロード後のファイルパスを取得してDBに保存。
+
+        if self.request.FILES['form-upload-image'].name:
+
+            # サーバーのアップロード先ディレクトリを作成、画像を保存
+            upload_dir = settings.MEDIA_ROOT + "/image/"  # auhter_id / work_id
+            path = os.path.join(upload_dir, self.request.FILES['form-upload-image'].name)
+            with open(path, 'wb+') as destination:
+                for chunk in self.request.FILES['form-upload-image'].chunks():
+                    destination.write(chunk)
+        else:
+            logger.debug("not upload")
+
+        # DBへの保存
+        work = Work()
+        work.title = form.instance.title
+        work.authorName = form.instance.authorName
+        work.material = form.instance.material
+        work.price = form.instance.price
+        work.memo = form.instance.memo
+        work.author = form.instance.author
+        work.create_datetime = form.instance.create_datetime
+        work.save()
+
+        if self.request.FILES['file']:
+            image = Image()  # DBへの保存
+            image.work_id = work.pk  # 作品ID
+            image.image = self.request.FILES['file'] # アップロードしたイメージパス（サーバー側）
+            result = image.save()
+
         messages.success(self.request, '作品情報を登録しました。')
         return result
 
     def form_invalid(self, form):
         result = super().form_invalid(form)
         return result
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     form = UploadFileForm
+    #     context = {
+    #         'upload_form': form,
+    #     }
+    #     return context
 
 
 class UpdateView(TestMixin1, generic.UpdateView):

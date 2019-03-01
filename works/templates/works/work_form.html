@@ -6,7 +6,7 @@
 
     <h1>Registration</h1>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
 
         {% csrf_token %}
 
@@ -73,6 +73,16 @@
             </label>
             <div class="">
                 {{ form.create_datetime }}
+            </div>
+        </div>
+
+        {{ form.upload.image.errors }}
+        <div class="form-group form-inline">
+            <label class="col-offset-1 col-3 control-label">
+                {{ form.upload.image.label_tag }}
+            </label>
+            <div class="">
+                {{ form.upload.image }}
             </div>
         </div>
 

@@ -50,4 +50,4 @@ class Image(models.Model):
     updated_at = models.DateTimeField(verbose_name='更新日時', auto_now=True)
 
     def __str__(self):
-        return self.work.title + ":" + str(self.data_datetime)
+        return self.work.title + ":" + self.work.create_datetime.strftime('%Y/%m/%d %H:%M:%S')

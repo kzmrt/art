@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'works.apps.WorksConfig',
     "bootstrap4",
     "bootstrap_datepicker_plus",
+    'django_superform',
 ]
 
 MIDDLEWARE = [
