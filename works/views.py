@@ -163,15 +163,13 @@ class DetailView(TestMixin1, generic.DetailView):
     template_name = 'works/detail.html'
 
 
-class CreateView(generic.CreateView):
+class CreateView(LoginRequiredMixin, generic.CreateView):
     # 登録画面
     model = Work
     form_class = WorkForm
-    # success_url = reverse_lazy('works:index')
-    # success_url = reverse_lazy('works:detail', kwargs={'pk': pk})
 
-    def get_success_url(self): # TODO: 詳細画面にリダイレクトする。
-        return reverse('works:detail', kwargs={'pk': self.kwargs['pk']})
+    def get_success_url(self):  # 詳細画面にリダイレクトする。
+        return reverse('works:detail', kwargs={'pk': self.object.pk})
 
     def get_form_kwargs(self, *args, **kwargs):
         form_kwargs = super().get_form_kwargs(*args, **kwargs)
@@ -182,7 +180,7 @@ class CreateView(generic.CreateView):
         # if not form.instance.author_id: # 制作者が未選択の場合
         #     form.instance.author_id = self.request.user.id
         result = super().form_valid(form)
-        messages.success(self.request, '登録しました。')
+        messages.success(self.request, '作品情報を登録しました。')
         return result
 
     def form_invalid(self, form):

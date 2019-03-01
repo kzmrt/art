@@ -3,15 +3,17 @@
 {% block content %}
 <div class="col-lg-6 offset-lg-3">
 
+    <h1>Detail</h1>
+
     {% if messages %}
     <ul class="messages">
         {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                <h2 class="info-msg">{{ message }}</h2>
+            </li>
         {% endfor %}
     </ul>
     {% endif %}
-
-    <h1>Detail</h1>
 
     <table class="table table-hover table-bordered">
         <tbody>
@@ -44,7 +46,7 @@
 
     <section>
         <div class="col-12">
-            <button type="submit" class="btn btn-primary btn-block col-4 mx-auto" onClick="javascript:history.back();">戻る</button>
+            <a class="btn btn-primary btn-block col-4 mx-auto" href="{% url 'works:index' %}" role="button">検索画面へ</a>
         </div>
     </section>
 
