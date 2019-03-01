@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+    <div class="col-lg-6 offset-lg-3">
+
+    <h1>Update</h1>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <p class="error-msg">
+            {% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
+            </p>
+        {% endif %}
+
+        {{ form.title.errors }}
+        <div class="form-group form-inline">
+            <label class="col-offset-1 col-3 control-label">
+                {{ form.title.label_tag }}
+            </label>
+            <div class="">
+                {{ form.title }}
+            </div>
+        </div>
+
+        {{ form.authorName.errors }}
+        <div class="form-group form-inline">
+            <label class="col-offset-1 col-3 control-label">
+                {{ form.authorName.label_tag }}
+            </label>
+            <div class="">
+                {{ form.authorName }}
+            </div>
+        </div>
+
+        {{ form.material.errors }}
+        <div class="form-group form-inline">
+            <label class="col-offset-1 col-3 control-label">
+                {{ form.material.label_tag }}
+            </label>
+            <div class="">
+                {{ form.material }}
+            </div>
+        </div>
+
+        {{ form.price.errors }}
+        <div class="form-group form-inline">
+            <label class="col-offset-1 col-3 control-label">
+                {{ form.price.label_tag }}
+            </label>
+            <div class="">
+                {{ form.price }}
+            </div>
+        </div>
+
+        {{ form.memo.errors }}
+        <div class="form-group form-inline">
+            <label class="col-offset-1 col-3 control-label">
+                {{ form.memo.label_tag }}
+            </label>
+            <div class="">
+                {{ form.memo }}
+            </div>
+        </div>
+
+        {{ form.create_datetime.errors }}
+        <div class="form-group form-inline">
+            <label class="col-offset-1 col-3 control-label">
+                {{ form.create_datetime.label_tag }}
+            </label>
+            <div class="">
+                {{ form.create_datetime }}
+            </div>
+        </div>
+
+        {% if user.is_superuser %}
+            {{ form.author.errors }}
+            <div class="form-group form-inline">
+                <label class="col-offset-1 col-3 control-label">
+                    {{ form.author.label_tag }}
+                </label>
+                <div class="">
+                    {{ form.author }}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="btn-toolbar offset-3" role="toolbar" aria-label="ボタングループのツールバー">
+            <div class="btn-group mr-2 d-flex">
+                <a class="btn btn-primary w-150px" href="{% url 'works:detail' work.pk %}" role="button">キャンセル</a>
+            </div>
+            <div class="btn-group mr-2">
+                <input class="btn btn-success w-150px" type="submit" id="button" name="button" value="更新">
+            </div>
+        </div>
+
+    </form>
+
+    </div>
+{% endblock %}

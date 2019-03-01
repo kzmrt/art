@@ -13,6 +13,9 @@ urlpatterns = [
     # 登録画面
     path('create/', views.CreateView.as_view(), name='create'),
 
+    # 更新画面
+    path('update/<int:pk>/', views.UpdateView.as_view(), name='update'),
+
     # パスワード変更画面
     path('password_change/', views.PasswordChange.as_view(), name='password_change'),
     path('password_change/done/', views.PasswordChangeDone.as_view(), name='password_change_done'),

@@ -188,6 +188,26 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
         return result
 
 
+class UpdateView(TestMixin1, generic.UpdateView):
+    # 更新画面
+    model = Work
+    template_name = 'works/update_form.html'
+
+    form_class = WorkForm
+
+    def get_success_url(self):  # 詳細画面にリダイレクトする。
+        return reverse('works:detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        result = super().form_valid(form)
+        messages.success(self.request, '作品情報を更新しました。')
+        return result
+
+    def form_invalid(self, form):
+        result = super().form_invalid(form)
+        return result
+
+
 class PasswordChange(LoginRequiredMixin, PasswordChangeView):
     # パスワード変更
     success_url = reverse_lazy('works:password_change_done')

@@ -44,11 +44,15 @@
         </tbody>
     </table>
 
-    <section>
-        <div class="col-12">
-            <a class="btn btn-primary btn-block col-4 mx-auto" href="{% url 'works:index' %}" role="button">検索画面へ</a>
+
+    <div class="btn-toolbar offset-3" role="toolbar" aria-label="ボタングループのツールバー">
+        <div class="btn-group mr-2">
+            <a class="btn btn-primary w-150px" href="{% url 'works:update' work.pk %}" role="button">更新</a>
         </div>
-    </section>
+        <div class="btn-group mr-2 d-flex">
+            <a class="btn btn-primary w-150px" href="{% url 'works:index' %}" role="button">検索画面へ</a>
+        </div>
+    </div>
 
 </div>
 {% endblock %}
