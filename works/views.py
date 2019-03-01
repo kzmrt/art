@@ -10,7 +10,6 @@ from django.urls import reverse_lazy
 from .forms import CalendarForm, WorkForm
 from datetime import datetime as dt, timedelta
 import bootstrap_datepicker_plus as datetimepicker
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.edit import ModelFormMixin
 from django.db.models import Q
 from django.contrib import messages
@@ -205,6 +204,19 @@ class UpdateView(TestMixin1, generic.UpdateView):
 
     def form_invalid(self, form):
         result = super().form_invalid(form)
+        return result
+
+
+class DeleteView(TestMixin1, generic.DeleteView):
+    # 削除画面
+    model = Work
+    template_name = 'works/delete.html'
+    success_url = reverse_lazy('works:index')  # 検索画面にリダイレクトする。
+
+    def delete(self, request, *args, **kwargs):
+        result = super().delete(request, *args, **kwargs)
+        messages.success(
+            self.request, '「{}」を削除しました。'.format(self.object))
         return result
 
 

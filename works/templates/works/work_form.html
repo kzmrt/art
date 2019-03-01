@@ -88,7 +88,14 @@
             </div>
         {% endif %}
 
-        <input class="btn btn-success offset-8 col-3" type="submit" id="button" name="button" value="登録">
+        <div class="btn-toolbar justify-content-center" role="toolbar" aria-label="ボタングループのツールバー">
+            <div class="btn-group mr-2">
+                <a class="btn btn-primary w-150px" href="{% url 'works:index' %}" role="button">検索画面へ</a>
+            </div>
+            <div class="btn-group mr-2">
+                <input class="btn btn-success w-150px" type="submit" id="button" name="button" value="登録実行">
+            </div>
+        </div>
 
     </form>
 

@@ -32,7 +32,7 @@ class Work(models.Model):
 
     def __str__(self):
         return self.title + ',' + self.authorName + ',' + self.material + ',' + self.price + ',' + self.memo \
-               + ',' + self.create_datetime
+               + ',' + self.create_datetime.strftime('%Y/%m/%d %H:%M:%S')
 
     @staticmethod
     def get_absolute_url(self):

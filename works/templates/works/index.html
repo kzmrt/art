@@ -3,15 +3,17 @@
 {% block content %}
 <div class="col-lg-6 offset-lg-3">
 
+    <h1>Search</h1>
+
     {% if messages %}
     <ul class="messages">
         {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                <h2 class="info-msg">{{ message }}</h2>
+            </li>
         {% endfor %}
     </ul>
     {% endif %}
-
-    <h1>Search</h1>
 
     <form method="post">
         {% csrf_token %}
