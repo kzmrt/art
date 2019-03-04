@@ -29,7 +29,7 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
     form_class = WorkForm
     model = Work
 
-    def get(self, request, *args, **kwargs): # これは必要
+    def get(self, request, *args, **kwargs):  # これは必要
         self.object = None
         return generic.ListView.get(self, request, *args, **kwargs)
 
@@ -210,7 +210,8 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
         work.create_datetime = form.instance.create_datetime
         work.save()
 
-        if self.request.FILES['form-upload-image'].name:  # 画像ファイルが添付されている場合
+        if len(self.request.FILES) != 0 and\
+                self.request.FILES['form-upload-image'].name:  # 画像ファイルが添付されている場合
             logger.debug("With Image.")
 
             # サーバーのアップロード先ディレクトリを作成、画像を保存
@@ -243,15 +244,52 @@ class UpdateView(TestMixin1, generic.UpdateView):
     model = Work
     template_name = 'works/update_form.html'
 
-    form_class = WorkForm
+    # form_class = WorkForm
+    form_class = WorkSetForm
 
-    def get_success_url(self):  # 詳細画面にリダイレクトする。
-        return reverse('works:detail', kwargs={'pk': self.object.pk})
+    # def get_success_url(self):  # 詳細画面にリダイレクトする。
+    #     return reverse('works:detail', kwargs={'pk': self.object.pk})
 
     def form_valid(self, form):
-        result = super().form_valid(form)
+        # result = super().form_valid(form)
+
+        # 作品情報(Work)を更新する。
+        self.object.__dict__.update(form.cleaned_data)
+        self.object.save()
+
+        if len(self.request.FILES) != 0 and\
+                self.request.FILES['form-upload-image'].name:  # 画像ファイルが添付されている場合
+            logger.debug("With Image.")
+
+            save_dir = "/image/" + '{0}/{1}/'.format(self.request.user.id, self.object.pk)  # auhter_id / work_id
+
+            # 古いイメージが存在する場合削除する
+            if Image.objects.filter(work_id=self.object.pk).exists():  # 画像が紐づく場合
+                # DBレコード削除
+                Image.objects.filter(work_id=self.object.pk).delete()
+
+                #  画像ファイルをディレクトリごと削除する。
+                upload_dir = settings.MEDIA_ROOT + save_dir
+                shutil.rmtree(upload_dir)
+
+            # サーバーのアップロード先ディレクトリを作成、画像を保存
+            upload_dir = settings.MEDIA_ROOT + save_dir
+            os.makedirs(upload_dir, exist_ok=True)  # ディレクトリが存在しない場合作成する
+            path = os.path.join(upload_dir, self.request.FILES['form-upload-image'].name)
+            with open(path, 'wb+') as destination:
+                for chunk in self.request.FILES['form-upload-image'].chunks():
+                    destination.write(chunk)
+
+            # DBへの保存
+            image = Image()
+            image.work_id = self.object.pk  # 作品ID
+            image.image = settings.MEDIA_URL + save_dir + self.request.FILES['form-upload-image'].name  # アップロードしたイメージパス（サーバー側）
+            image.save()
+        else:
+            logger.debug("No Image.")
+
         messages.success(self.request, '作品情報を更新しました。')
-        return result
+        return HttpResponseRedirect(reverse('works:detail', kwargs={'pk': self.object.pk}))  # 詳細画面にリダイレクト
 
     def form_invalid(self, form):
         result = super().form_invalid(form)

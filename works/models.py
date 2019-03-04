@@ -45,7 +45,7 @@ class Image(models.Model):
         db_table = 'image'
 
     work = models.ForeignKey(Work, verbose_name='作品', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="image/", verbose_name='イメージ')
+    image = models.ImageField(upload_to="image/", verbose_name='イメージ', null=True, blank=True)
     created_at = models.DateTimeField(verbose_name='登録日時', auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name='更新日時', auto_now=True)
 

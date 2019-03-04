@@ -22,7 +22,7 @@ from . import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('', include('works.urls')), # ホームURLに設定
+    path('', include('works.urls')),  # ホームURLに設定
 ]
 
 urlpatterns += staticfiles_urlpatterns()

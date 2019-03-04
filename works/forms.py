@@ -134,14 +134,15 @@ class UploadFileForm(forms.ModelForm):
 
         image = forms.ImageField(
             label='画像',
-            required = True,  # 必須ではない
+            required=False,  # 必須 or 必須ではない
         )
 
     def clean_image(self):
         image = self.cleaned_data['image']
-        extension = os.path.splitext(image.name)[1]  # 拡張子を取得
-        if not extension.lower() in VALID_EXTENSIONS:
-            raise forms.ValidationError('jpgファイルを選択してください！')
+        if image:  # 画像ファイルが指定されている場合
+            extension = os.path.splitext(image.name)[1]  # 拡張子を取得
+            if not extension.lower() in VALID_EXTENSIONS:
+                raise forms.ValidationError('jpgファイルを選択してください！')
         return image  # viewsでcleaned_dataを参照するためreturnする
 
 
