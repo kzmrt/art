@@ -172,7 +172,7 @@ LOGGING = {
 
 # セッションの設定
 SESSION_COOKIE_AGE = 600 # 10分
-# SESSION_SAVE_EVERY_REQUEST = True # 1リクエストごとにセッション情報を更新（ポーリング毎に更新されてしまう）
+SESSION_SAVE_EVERY_REQUEST = True # 1リクエストごとにセッション情報を更新（ポーリング毎に更新されてしまう）
 
 # ログイン後のリダイレクト先URL
 LOGIN_REDIRECT_URL = '/'

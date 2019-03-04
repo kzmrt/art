@@ -13,10 +13,13 @@ import bootstrap_datepicker_plus as datetimepicker
 from django.views.generic.edit import ModelFormMixin
 from django.db.models import Q
 from django.contrib import messages
-import os
+from django.http import HttpResponseRedirect
+import os, shutil
 from art import settings
 
 logger = logging.getLogger('development')
+
+NO_IMAGE = '/image/noimage.jpg'  # NO IMAGEパス
 
 
 class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
@@ -163,6 +166,19 @@ class DetailView(TestMixin1, generic.DetailView):
     model = Work
     template_name = 'works/detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if Image.objects.filter(work_id=self.object.pk).exists():  # 画像が紐づく場合
+            # 作品に紐づく画像パスを取得
+            image = Image.objects.values_list('image', flat=True).get(work_id=self.object.pk)
+        else:
+            # No Imageパス
+            image = settings.MEDIA_URL + NO_IMAGE
+        context['image'] = image
+
+        return context
+
 
 class CreateView(LoginRequiredMixin, generic.CreateView):
     # 登録画面
@@ -170,8 +186,8 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
     # form_class = WorkForm
     form_class = WorkSetForm
 
-    def get_success_url(self):  # 詳細画面にリダイレクトする。
-        return reverse('works:detail', kwargs={'pk': self.object.pk})
+    # def get_success_url(self):  # 詳細画面にリダイレクトする。
+    #     return reverse('works:detail', kwargs={'pk': self.object.pk})
 
     def get_form_kwargs(self, *args, **kwargs):
         form_kwargs = super().get_form_kwargs(*args, **kwargs)
@@ -181,22 +197,7 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
     def form_valid(self, form):
         # if not form.instance.author_id: # 制作者が未選択の場合
         #     form.instance.author_id = self.request.user.id
-
         # result = super().form_valid(form)
-
-        # TODO: 画像を登録する場合、作品IDでディレクトリを作成してアップロード。
-        # アップロード後のファイルパスを取得してDBに保存。
-
-        if self.request.FILES['form-upload-image'].name:
-
-            # サーバーのアップロード先ディレクトリを作成、画像を保存
-            upload_dir = settings.MEDIA_ROOT + "/image/"  # auhter_id / work_id
-            path = os.path.join(upload_dir, self.request.FILES['form-upload-image'].name)
-            with open(path, 'wb+') as destination:
-                for chunk in self.request.FILES['form-upload-image'].chunks():
-                    destination.write(chunk)
-        else:
-            logger.debug("not upload")
 
         # DBへの保存
         work = Work()
@@ -209,26 +210,32 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
         work.create_datetime = form.instance.create_datetime
         work.save()
 
-        if self.request.FILES['file']:
-            image = Image()  # DBへの保存
+        if self.request.FILES['form-upload-image'].name:  # 画像ファイルが添付されている場合
+            logger.debug("With Image.")
+
+            # サーバーのアップロード先ディレクトリを作成、画像を保存
+            save_dir = "/image/" + '{0}/{1}/'.format(self.request.user.id, work.pk)  # auhter_id / work_id
+            upload_dir = settings.MEDIA_ROOT + save_dir
+            os.makedirs(upload_dir, exist_ok=True)  # ディレクトリが存在しない場合作成する
+            path = os.path.join(upload_dir, self.request.FILES['form-upload-image'].name)
+            with open(path, 'wb+') as destination:
+                for chunk in self.request.FILES['form-upload-image'].chunks():
+                    destination.write(chunk)
+
+            # DBへの保存
+            image = Image()
             image.work_id = work.pk  # 作品ID
-            image.image = self.request.FILES['file'] # アップロードしたイメージパス（サーバー側）
-            result = image.save()
+            image.image = settings.MEDIA_URL + save_dir + self.request.FILES['form-upload-image'].name  # アップロードしたイメージパス（サーバー側）
+            image.save()
+        else:
+            logger.debug("No Image.")
 
         messages.success(self.request, '作品情報を登録しました。')
-        return result
+        return HttpResponseRedirect(reverse('works:detail', kwargs={'pk': work.pk}))  # 詳細画面にリダイレクト
 
     def form_invalid(self, form):
         result = super().form_invalid(form)
         return result
-
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     form = UploadFileForm
-    #     context = {
-    #         'upload_form': form,
-    #     }
-    #     return context
 
 
 class UpdateView(TestMixin1, generic.UpdateView):
@@ -258,7 +265,15 @@ class DeleteView(TestMixin1, generic.DeleteView):
     success_url = reverse_lazy('works:index')  # 検索画面にリダイレクトする。
 
     def delete(self, request, *args, **kwargs):
+
+        if Image.objects.filter(work_id=self.kwargs['pk']).exists():  # 画像が紐づく場合
+            #  画像ファイルをディレクトリごと削除する。
+            save_dir = "/image/" + '{0}/{1}/'.format(self.request.user.id, self.kwargs['pk'])  # auhter_id / work_id
+            upload_dir = settings.MEDIA_ROOT + save_dir
+            shutil.rmtree(upload_dir)
+
         result = super().delete(request, *args, **kwargs)
+
         messages.success(
             self.request, '「{}」を削除しました。'.format(self.object))
         return result
