@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "bootstrap4",
     "bootstrap_datepicker_plus",
     'django_superform',
+    'django.contrib.humanize'
 ]
 
 MIDDLEWARE = [
@@ -195,3 +196,6 @@ AUTH_USER_MODEL = 'works.CustomUser'
 # イメージアップロード関連
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# django.contrib.humanize tmplateでカンマ区切り
+NUMBER_GROUPING = 3

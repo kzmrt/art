@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load humanize %}
 {% block content %}
 <div class="col-lg-6 offset-lg-3">
 
@@ -31,7 +32,13 @@
             </tr>
             <tr>
                 <th width="40%">価格</th>
-                <td width="60%">{{ work.price }}</td>
+                {% if work.price > 0 %}
+                <td width="60%">￥{{ work.price|intcomma }}.-</td>
+                {% elif work.price <= -100 %}
+                <td width="60%">SOLD OUT</td>
+                {% else %}
+                <td width="60%">非売品</td>
+                {% endif %}
             </tr>
             <tr>
                 <th width="40%">メモ</th>
@@ -54,7 +61,7 @@
             <a class="btn btn-primary w-150px" href="{% url 'works:delete' work.pk %}" role="button">削除</a>
         </div>
         <div class="btn-group mr-2">
-            <a class="btn btn-primary w-150px" href="{% url 'works:update' work.pk %}" role="button">更新</a>
+            <a class="btn btn-primary w-150px" href="{% url 'works:update' work.pk %}" role="button">編集</a>
         </div>
         <div class="btn-group mr-2">
             <a class="btn btn-primary w-150px" href="{% url 'works:index' %}" role="button">検索画面へ</a>

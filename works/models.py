@@ -18,7 +18,8 @@ class Work(models.Model):
     title = models.CharField(verbose_name='作品名', max_length=255)
     authorName = models.CharField(verbose_name='作者', max_length=255)
     material = models.CharField(verbose_name='画材', max_length=255)
-    price = models.CharField(verbose_name='価格', max_length=255)
+    price = models.IntegerField(verbose_name='価格', max_length=255)
+    # price = models.DecimalField(verbose_name='価格',max_digits=15, decimal_places=0)
     memo = models.CharField(verbose_name='メモ', max_length=255, default='', blank=True)
     author = models.ForeignKey(
         'works.CustomUser',
