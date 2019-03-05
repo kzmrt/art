@@ -13,6 +13,9 @@ Requirement
 :Django: 2.1.7
 :django-bootstrap4: 0.0.7
 :django-bootstrap-datepicker-plus: 3.0.5
+:django-superform: 0.3.1
+:Pillow: 5.4.1
+:pytz: 2018.9
 
 Quick start
 ===========
@@ -24,7 +27,7 @@ Quick start
 
     python manage.py migrate
 
-3. migrate model::
+3. create superuser::
 
     python manage.py createsuperuser
 
