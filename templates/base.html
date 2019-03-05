@@ -12,6 +12,8 @@
         {{ form.media }}
         <!-- 日時入力用 -->
 
+        <!-- lightbox -->
+        <link href="{% static 'css/dist/css/lightbox.css' %}" rel="stylesheet">
 
         <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
         <link href="{% static 'css/style.css' %}" rel="stylesheet">
@@ -101,10 +103,13 @@
             {% endblock %}
         </main>
         <p id="page-top"><a href="#">PAGE TOP</a></p>
-            <footer class="py-4 bg-dark">
-                <div class="container text-center">
-                    <p class="text-light"><small>Copyright &copy;2019 Art Works, All Rights Reserved.</small></p>
-                </div>
-            </footer>
+        <footer class="py-4 bg-dark">
+            <div class="container text-center">
+                <p class="text-light"><small>Copyright &copy;2019 Art Works, All Rights Reserved.</small></p>
+            </div>
+        </footer>
+
+        <!-- lightbox -->
+        <script src="{% static 'css/dist/js/lightbox-plus-jquery.js' %}"></script>
     </body>
 </html>

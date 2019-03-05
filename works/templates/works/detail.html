@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load humanize %}
+
 {% block content %}
 <div class="col-lg-6 offset-lg-3">
 
@@ -50,7 +51,8 @@
             </tr>
             <tr>
                 <th width="40%">画像</th>
-                <td width="60%"><img src="{{ image }}" alt={{ work.title }} width="100%" height="100%" border="0" /></td>
+                <td width="60%">
+                <a href="{{ image }}" data-lightbox="image-1" data-title="{{ work.title }}"><img src="{{ image }}" alt={{ work.title }} width="100%" height="100%" border="0" /></a></td>
             </tr>
         </tbody>
     </table>
