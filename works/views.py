@@ -16,6 +16,17 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 import os, shutil
 from art import settings
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+from reportlab.pdfbase import pdfmetrics
+from reportlab.lib.utils import ImageReader
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import portrait
+from reportlab.lib.units import mm
+from reportlab.platypus import Table
+from reportlab.platypus import TableStyle
+from reportlab.lib import colors
 
 logger = logging.getLogger('development')
 
@@ -315,6 +326,84 @@ class DeleteView(TestMixin1, generic.DeleteView):
         messages.success(
             self.request, '「{}」を削除しました。'.format(self.object))
         return result
+
+
+class BasicPdf(LoginRequiredMixin, generic.View):
+    filename = 'art_work_list.pdf'  # 出力ファイル名
+    title = 'title: Art Works'
+    font_name = 'HeiseiKakuGo-W5'  # フォント
+    is_bottomup = True
+
+    def get(self, request, *args, **kwargs):
+
+        # PDF出力
+        response = HttpResponse(status=200, content_type='application/pdf')
+        # response['Content-Disposition'] = 'attachment; filename="{}"'.format(self.filename)  # ダウンロードする場合
+        response['Content-Disposition'] = 'filename="{}"'.format(self.filename)  # 画面に表示する場合
+
+        # A4縦書きのpdfを作る
+        size = portrait(A4)
+
+        # pdfを描く場所を作成：位置を決める原点は左上にする(bottomup)
+        # デフォルトの原点は左下
+        p = canvas.Canvas(response, pagesize=size, bottomup=self.is_bottomup)
+
+        pdfmetrics.registerFont(UnicodeCIDFont(self.font_name))
+        p.setFont(self.font_name, 16)  # フォントを設定
+
+        # pdfのタイトルを設定
+        p.setTitle(self.title)
+
+        # Draw things on the PDF. Here's where the PDF generation happens.
+        # See the ReportLab documentation for the full list of functionality.
+        # X座標(左端から)、Y座標(下から)
+        # p.drawString(100, 500, "こんにちは")
+
+        if Image.objects.filter(work_id=1).exists():  # 画像が紐づく場合
+            # 作品に紐づく画像パスを取得
+            image = Image.objects.values_list('image', flat=True).get(work_id=1)
+        else:
+            # No Imageパス
+            image = settings.MEDIA_URL + NO_IMAGE
+
+        # 画像の描画
+        p.drawImage(ImageReader(image[1:]), 10, 550, width=580, height=280, mask='auto', preserveAspectRatio=True)
+
+        # キャプション情報
+        # 複数行の表を用意したい場合、二次元配列でデータを用意する
+        data = [
+            ['作品タイトル', '最後の晩餐', '価格','￥9,000,000,000,000.-'],
+            ['作者', 'レオナルド・ダ・ヴィンチ', '画材','油絵'],
+        ]
+
+        table = Table(data)
+        # TableStyleを使って、Tableの装飾をします
+        table.setStyle(TableStyle([
+            # 表で使うフォントとそのサイズを設定
+            ('FONT', (0, 0), (-1, -1), self.font_name, 9),
+            # 四角に罫線を引いて、0.5の太さで、色は黒
+            ('BOX', (0, 0), (-1, -1), 1, colors.black),
+            # 四角の内側に格子状の罫線を引いて、0.25の太さで、色は黒
+            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+            # セルの縦文字位置を、TOPにする
+            # 他にMIDDLEやBOTTOMを指定できるのでお好みで
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ]))
+
+        # tableを描き出す位置を指定
+        table.wrapOn(p, 50 * mm, 10 * mm)
+        table.drawOn(p, 50 * mm, 170 * mm)
+
+        # Close the PDF object cleanly, and we're done.
+        p.showPage()  # Canvasに書き込み
+        p.save()  # ファイル保存
+
+        self._draw(p)
+
+        return response
+
+    def _draw(self, p):
+        pass
 
 
 class PasswordChange(LoginRequiredMixin, PasswordChangeView):

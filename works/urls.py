@@ -19,6 +19,9 @@ urlpatterns = [
     # 削除画面
     path('delete/<int:pk>/', views.DeleteView.as_view(), name='delete'),
 
+    # PDF出力
+    path('pdf/', views.BasicPdf.as_view(), name='pdf'),
+
     # パスワード変更画面
     path('password_change/', views.PasswordChange.as_view(), name='password_change'),
     path('password_change/done/', views.PasswordChangeDone.as_view(), name='password_change_done'),
