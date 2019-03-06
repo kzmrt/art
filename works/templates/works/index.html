@@ -86,6 +86,10 @@
     </div>
 
     <script>
+        $('#search').click(function() { // 検索ボタンが押された時の処理
+            localStorage.removeItem("formValues"); // ローカルストレージから削除
+        });
+
         $('#pdf').click(function() { // PDF出力ボタンが押された時の処理
             // ローカルストレージから値を取得
             const checkIds = []; // checkboxのチェックされているID
@@ -93,7 +97,6 @@
             Object.keys(formValues).forEach(function (key) {
                 if(!isNaN(key) && key != ""){ // 数値の場合
                     if(formValues[key]) {
-                        // alert(key + "は" + formValues[key]);
                         checkIds.push(key);
                     }
                 }
