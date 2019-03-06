@@ -42,11 +42,24 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
 
     def get(self, request, *args, **kwargs):  # これは必要
         self.object = None
+
+        # TODO: チェックボックスの値を取得できるか？
+
         return generic.ListView.get(self, request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.object = None
         self.form = self.get_form(self.form_class)
+
+        if self.request.POST.get('search', None):  # 検索ボタンが押された場合
+            logger.debug("検索")
+        else:  # PDF出力ボタンが押された場合
+            logger.debug("PDF出力")
+            check_value =[
+                self.request.POST.getlist('checkbox')
+            ]
+            request.session['check_value'] = check_value  # チェックボックスの値をセッションに渡す
+            return HttpResponseRedirect(reverse('works:pdf'))  # PDF出力へリダイレクト
 
         form_value = [
             self.request.POST.get('title', None),
@@ -336,6 +349,20 @@ class BasicPdf(LoginRequiredMixin, generic.View):
 
     def get(self, request, *args, **kwargs):
 
+        # sessionに値がある場合
+        if 'check_value' in self.request.session:
+            check_value = self.request.session['check_value']
+            checkList = check_value[0]
+            logger.debug(checkList)
+        else:
+            logger.debug("チェックなし")
+
+        # check = request.GET.get('check', None)
+        if len(checkList) > 0:
+            logger.debug("チェックあり")
+        else:
+            logger.debug("チェックなし")
+
         # PDF出力
         response = HttpResponse(status=200, content_type='application/pdf')
         # response['Content-Disposition'] = 'attachment; filename="{}"'.format(self.filename)  # ダウンロードする場合
@@ -354,11 +381,6 @@ class BasicPdf(LoginRequiredMixin, generic.View):
         # pdfのタイトルを設定
         p.setTitle(self.title)
 
-        # Draw things on the PDF. Here's where the PDF generation happens.
-        # See the ReportLab documentation for the full list of functionality.
-        # X座標(左端から)、Y座標(下から)
-        # p.drawString(100, 500, "こんにちは")
-
         if Image.objects.filter(work_id=1).exists():  # 画像が紐づく場合
             # 作品に紐づく画像パスを取得
             image = Image.objects.values_list('image', flat=True).get(work_id=1)
@@ -367,7 +389,7 @@ class BasicPdf(LoginRequiredMixin, generic.View):
             image = settings.MEDIA_URL + NO_IMAGE
 
         # 画像の描画
-        p.drawImage(ImageReader(image[1:]), 10, 550, width=580, height=280, mask='auto', preserveAspectRatio=True)
+        p.drawImage(ImageReader(image[1:]), 5, 530, width=580, height=280, mask='auto', preserveAspectRatio=True)
 
         # キャプション情報
         # 複数行の表を用意したい場合、二次元配列でデータを用意する
@@ -392,7 +414,80 @@ class BasicPdf(LoginRequiredMixin, generic.View):
 
         # tableを描き出す位置を指定
         table.wrapOn(p, 50 * mm, 10 * mm)
-        table.drawOn(p, 50 * mm, 170 * mm)
+        table.drawOn(p, 50 * mm, 160 * mm)
+
+
+        if Image.objects.filter(work_id=2).exists():  # 画像が紐づく場合
+            # 作品に紐づく画像パスを取得
+            image = Image.objects.values_list('image', flat=True).get(work_id=2)
+        else:
+            # No Imageパス
+            image = settings.MEDIA_URL + NO_IMAGE
+
+        # 画像の描画
+        p.drawImage(ImageReader(image[1:]), 10, 120, width=580, height=280, mask='auto', preserveAspectRatio=True)
+
+        # キャプション情報
+        # 複数行の表を用意したい場合、二次元配列でデータを用意する
+        data = [
+            ['作品タイトル', 'ひまわり', '価格','￥100,000,000,000.-'],
+            ['作者', 'ゴッホ', '画材','油絵'],
+        ]
+
+        table = Table(data)
+        # TableStyleを使って、Tableの装飾をします
+        table.setStyle(TableStyle([
+            # 表で使うフォントとそのサイズを設定
+            ('FONT', (0, 0), (-1, -1), self.font_name, 9),
+            # 四角に罫線を引いて、0.5の太さで、色は黒
+            ('BOX', (0, 0), (-1, -1), 1, colors.black),
+            # 四角の内側に格子状の罫線を引いて、0.25の太さで、色は黒
+            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+            # セルの縦文字位置を、TOPにする
+            # 他にMIDDLEやBOTTOMを指定できるのでお好みで
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ]))
+
+        # tableを描き出す位置を指定
+        table.wrapOn(p, 500 * mm, 1000 * mm)
+        table.drawOn(p, 50 * mm, 20 * mm)
+
+        p.showPage()  # Canvasに書き込み（改ページ）-------------------------------------------------
+        if Image.objects.filter(work_id=3).exists():  # 画像が紐づく場合
+            # 作品に紐づく画像パスを取得
+            image = Image.objects.values_list('image', flat=True).get(work_id=3)
+        else:
+            # No Imageパス
+            image = settings.MEDIA_URL + NO_IMAGE
+
+        # 画像の描画
+        p.drawImage(ImageReader(image[1:]), 5, 530, width=580, height=280, mask='auto', preserveAspectRatio=True)
+
+        # キャプション情報
+        # 複数行の表を用意したい場合、二次元配列でデータを用意する
+        data = [
+            ['作品タイトル', '最後の晩餐', '価格','￥9,000,000,000,000.-'],
+            ['作者', 'レオナルド・ダ・ヴィンチ', '画材','油絵'],
+        ]
+
+        table = Table(data)
+        # TableStyleを使って、Tableの装飾をします
+        table.setStyle(TableStyle([
+            # 表で使うフォントとそのサイズを設定
+            ('FONT', (0, 0), (-1, -1), self.font_name, 9),
+            # 四角に罫線を引いて、0.5の太さで、色は黒
+            ('BOX', (0, 0), (-1, -1), 1, colors.black),
+            # 四角の内側に格子状の罫線を引いて、0.25の太さで、色は黒
+            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+            # セルの縦文字位置を、TOPにする
+            # 他にMIDDLEやBOTTOMを指定できるのでお好みで
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ]))
+
+        # tableを描き出す位置を指定
+        table.wrapOn(p, 50 * mm, 10 * mm)
+        table.drawOn(p, 50 * mm, 160 * mm)
+
 
         # Close the PDF object cleanly, and we're done.
         p.showPage()  # Canvasに書き込み

@@ -26,47 +26,56 @@
             </div>
         {% endfor %}
         {% if object_list|length == 0 %}
-            <input class="btn btn-success offset-8 w-150px" type="submit" id="button" name="button" value="検索">
+            <input class="btn btn-success offset-8 w-150px" type="submit" id="search" name="search" value="検索">
         {% else %}
-            <a class="btn btn-primary offset-5 w-150px" href="{% url 'works:pdf' %}" role="button">PDF出力</a>
-            <input class="btn btn-success w-150px" type="submit" id="button" name="button" value="検索">
+            <!-- <a class="btn btn-primary offset-5 w-150px" href="{% url 'works:pdf' %}" role="button">PDF出力</a>
+            <input class="btn btn-primary offset-5 w-150px" type="submit" id="pdf" name="pdf" value="PDF出力"> -->
+            <input class="btn btn-success w-150px" type="submit" id="search" name="search" value="検索">
         {% endif %}
 
     </form>
 
     <hr>
 
+        <input class="btn btn-primary w-150px" type="submit" id="pdf" name="pdf" value="PDF出力">
+        <!-- <button class="btn btn-primary offset-5 w-150px" type="submit" id="pdf" name="pdf">PDF出力</button> -->
+
     <section class="post-list">
         {% if object_list|length == 0 %}
             <p>検索結果が存在しません。</p>
         {% else %}
+            <div id="checkbox-container">
             <table class="table table-hover table-bordered">
                 <tr>
+                    <td><button></button></td>
                     <th>作品タイトル</th>
                     <th>作者</th>
                     <th>画材</th>
-                    <!-- <th>価格</th> -->
                     <th>画像</th>
                 </tr>
                 <tbody>
-                {% for work in object_list %}
-                    <tr>
-                        <td width="25%"><a href="{% url 'works:detail' work.pk %}">{{ work.title }}</a></td>
-                        <td width="25%">{{ work.authorName }}</td>
-                        <td width="25%">{{ work.material }}</td>
-                        <!-- <td width="25%">{{ work.price }}</td> -->
-                        {% if work.image_set.count > 0 %}
-                            <td width="25%">
-                                <!-- <img src="{{ work.image_set.first.image }}" alt={{ work.title }} width="100%" height="100%" border="0" /> -->
-                                <a href="{{ work.image_set.first.image }}" data-lightbox="image-1" data-title="{{ work.title }}"><img src="{{ work.image_set.first.image }}" alt={{ work.title }} width="100%" height="100%" border="0" /></a>
-                            </td>
-                        {% else %}
-                            <td width="25%">－</td>
-                        {% endif %}
-                    </tr>
-                {% endfor %}
+                <form id="chk" method="post" name="chk">
+                    {% csrf_token %}
+                    {% for work in object_list %}
+                        <tr>
+                            <td width="3%"><input type="checkbox" value="{{ work.pk }}" name="checks[]" id="{{ work.pk }}"></td>
+                            <td width="24%"><a href="{% url 'works:detail' work.pk %}">{{ work.title }}</a></td>
+                            <td width="24%">{{ work.authorName }}</td>
+                            <td width="24%">{{ work.material }}</td>
+                            {% if work.image_set.count > 0 %}
+                                <td width="25%">
+                                    <!-- <img src="{{ work.image_set.first.image }}" alt={{ work.title }} width="100%" height="100%" border="0" /> -->
+                                    <a href="{{ work.image_set.first.image }}" data-lightbox="image-1" data-title="{{ work.title }}"><img src="{{ work.image_set.first.image }}" alt={{ work.title }} width="100%" height="100%" border="0" /></a>
+                                </td>
+                            {% else %}
+                                <td width="25%">－</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </form>
                 </tbody>
             </table>
+            </div>
         {% endif %}
     </section>
 
@@ -75,6 +84,80 @@
             {% include 'pagination.html' %}
         {% endif %}
     </div>
+
+    <script>
+        $('#pdf').click(function() { // PDF出力ボタンが押された時の処理
+            // ローカルストレージから値を取得
+            const checkIds = []; // checkboxのチェックされているID
+            var formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+            Object.keys(formValues).forEach(function (key) {
+                if(!isNaN(key) && key != ""){ // 数値の場合
+                    if(formValues[key]) {
+                        // alert(key + "は" + formValues[key]);
+                        checkIds.push(key);
+                    }
+                }
+            });
+            // alert(checkIds);
+
+            if(checkIds.length > 0){  // チェックされている場合
+                // エレメントを作成
+                var ele = document.createElement('input');
+                // データを設定
+                ele.setAttribute('type', 'hidden');
+                ele.setAttribute('name', 'checkbox');
+                ele.setAttribute('value', checkIds);
+                // 要素を追加
+                document.chk.appendChild(ele);
+            }
+
+            $('#chk').submit();
+        });
+
+        // チェックボックス関連処理
+        var formValues = JSON.parse(localStorage.getItem('formValues')) || {};
+        var $checkboxes = $("#checkbox-container :checkbox");
+        var $button = $("#checkbox-container button");
+
+        function allChecked(){
+          return $checkboxes.length === $checkboxes.filter(":checked").length;
+        }
+
+        function updateButtonStatus(){
+          $button.text(allChecked()? "✔" : "");
+        }
+
+        function handleButtonClick(){
+          $checkboxes.prop("checked", allChecked()? false : true)
+        }
+
+        function updateStorage(){
+          $checkboxes.each(function(){
+            formValues[this.id] = this.checked;
+          });
+
+          formValues["buttonText"] = $button.text();
+          localStorage.setItem("formValues", JSON.stringify(formValues));
+        }
+
+        $button.on("click", function() {
+          handleButtonClick();
+          updateButtonStatus();
+          updateStorage();
+        });
+
+        $checkboxes.on("change", function(){
+          updateButtonStatus();
+          updateStorage();
+        });
+
+        // On page load
+        $.each(formValues, function(key, value) {
+          $("#" + key).prop('checked', value);
+        });
+
+        $button.text(formValues["buttonText"]);
+    </script>
 </div>
 
 {% endblock %}
