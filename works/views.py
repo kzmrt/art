@@ -43,8 +43,6 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
     def get(self, request, *args, **kwargs):  # これは必要
         self.object = None
 
-        # TODO: チェックボックスの値を取得できるか？
-
         return generic.ListView.get(self, request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -349,20 +347,6 @@ class BasicPdf(LoginRequiredMixin, generic.View):
 
     def get(self, request, *args, **kwargs):
 
-        # sessionに値がある場合
-        if 'check_value' in self.request.session:
-            check_value = self.request.session['check_value']
-            checkList = check_value[0]
-            logger.debug(checkList)
-        else:
-            logger.debug("チェックなし")
-
-        # check = request.GET.get('check', None)
-        if len(checkList) > 0:
-            logger.debug("チェックあり")
-        else:
-            logger.debug("チェックなし")
-
         # PDF出力
         response = HttpResponse(status=200, content_type='application/pdf')
         # response['Content-Disposition'] = 'attachment; filename="{}"'.format(self.filename)  # ダウンロードする場合
@@ -381,116 +365,91 @@ class BasicPdf(LoginRequiredMixin, generic.View):
         # pdfのタイトルを設定
         p.setTitle(self.title)
 
-        if Image.objects.filter(work_id=1).exists():  # 画像が紐づく場合
-            # 作品に紐づく画像パスを取得
-            image = Image.objects.values_list('image', flat=True).get(work_id=1)
+        # sessionに値がある場合
+        if 'check_value' in self.request.session:
+            check_value = self.request.session['check_value']
+            checkList = check_value[0]
+            logger.debug(checkList)
+
+        if len(checkList) > 0:
+            logger.debug("チェックあり")
+
+            # チェックされた作品情報のみ出力する。
+            id_array = checkList[-1].split(",")  # 最後の要素（最新の情報）を取得する。
         else:
-            # No Imageパス
-            image = settings.MEDIA_URL + NO_IMAGE
+            logger.debug("チェックなし")
 
-        # 画像の描画
-        p.drawImage(ImageReader(image[1:]), 5, 530, width=580, height=280, mask='auto', preserveAspectRatio=True)
+            # 全ての作品情報を出力する。（検索結果は無関係）
+            id_array = list(Work.objects.all().values_list('pk', flat=True))
 
-        # キャプション情報
-        # 複数行の表を用意したい場合、二次元配列でデータを用意する
-        data = [
-            ['作品タイトル', '最後の晩餐', '価格','￥9,000,000,000,000.-'],
-            ['作者', 'レオナルド・ダ・ヴィンチ', '画材','油絵'],
-        ]
+        for work_count, work_id in enumerate(id_array):
 
-        table = Table(data)
-        # TableStyleを使って、Tableの装飾をします
-        table.setStyle(TableStyle([
-            # 表で使うフォントとそのサイズを設定
-            ('FONT', (0, 0), (-1, -1), self.font_name, 9),
-            # 四角に罫線を引いて、0.5の太さで、色は黒
-            ('BOX', (0, 0), (-1, -1), 1, colors.black),
-            # 四角の内側に格子状の罫線を引いて、0.25の太さで、色は黒
-            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-            # セルの縦文字位置を、TOPにする
-            # 他にMIDDLEやBOTTOMを指定できるのでお好みで
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ]))
+            logger.debug(work_count)
 
-        # tableを描き出す位置を指定
-        table.wrapOn(p, 50 * mm, 10 * mm)
-        table.drawOn(p, 50 * mm, 160 * mm)
+            if Image.objects.filter(work_id=work_id).exists():  # 画像が紐づく場合
+                # 作品に紐づく画像パスを取得
+                image = Image.objects.values_list('image', flat=True).get(work_id=work_id)
+            else:
+                # No Imageパス
+                image = settings.MEDIA_URL + NO_IMAGE
 
+            # キャプション情報
+            workInfo = Work.objects.filter(pk=work_id).first()
 
-        if Image.objects.filter(work_id=2).exists():  # 画像が紐づく場合
-            # 作品に紐づく画像パスを取得
-            image = Image.objects.values_list('image', flat=True).get(work_id=2)
-        else:
-            # No Imageパス
-            image = settings.MEDIA_URL + NO_IMAGE
+            # 複数行の表を用意したい場合、二次元配列でデータを用意する
+            if workInfo.price > 0 :
+                price = "￥{:,d}.-".format(workInfo.price)
+            elif workInfo.price <= -100:
+                price = "SOLD OUT"
+            else:
+                price = "非売品"
 
-        # 画像の描画
-        p.drawImage(ImageReader(image[1:]), 10, 120, width=580, height=280, mask='auto', preserveAspectRatio=True)
+            data = [
+                ['タイトル', workInfo.title, '価格', price],
+                ['作者', workInfo.authorName, '画材', workInfo.material],
+            ]
 
-        # キャプション情報
-        # 複数行の表を用意したい場合、二次元配列でデータを用意する
-        data = [
-            ['作品タイトル', 'ひまわり', '価格','￥100,000,000,000.-'],
-            ['作者', 'ゴッホ', '画材','油絵'],
-        ]
+            # table = Table(data)
+            table = Table(data, (15 * mm, 50 * mm, 12 * mm, 50 * mm), None, hAlign='CENTER')
+            # TableStyleを使って、Tableの装飾をします
+            table.setStyle(TableStyle([
+                # 表で使うフォントとそのサイズを設定
+                ('FONT', (0, 0), (-1, -1), self.font_name, 9),
+                # 四角に罫線を引いて、0.5の太さで、色は黒
+                ('BOX', (0, 0), (-1, -1), 1, colors.black),
+                # 四角の内側に格子状の罫線を引いて、0.25の太さで、色は黒
+                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                # セルの縦文字位置
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ('TEXTCOLOR', (0, 0), (0, 1), colors.darkblue),
+                ('TEXTCOLOR', (2, 0), (2, 1), colors.darkblue),
+            ]))
 
-        table = Table(data)
-        # TableStyleを使って、Tableの装飾をします
-        table.setStyle(TableStyle([
-            # 表で使うフォントとそのサイズを設定
-            ('FONT', (0, 0), (-1, -1), self.font_name, 9),
-            # 四角に罫線を引いて、0.5の太さで、色は黒
-            ('BOX', (0, 0), (-1, -1), 1, colors.black),
-            # 四角の内側に格子状の罫線を引いて、0.25の太さで、色は黒
-            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-            # セルの縦文字位置を、TOPにする
-            # 他にMIDDLEやBOTTOMを指定できるのでお好みで
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ]))
+            if work_count % 2 == 0:  # 偶数の場合
 
-        # tableを描き出す位置を指定
-        table.wrapOn(p, 500 * mm, 1000 * mm)
-        table.drawOn(p, 50 * mm, 20 * mm)
+                # 画像の描画
+                p.drawImage(ImageReader(image[1:]), 10, 530, width=580, height=280, mask='auto',
+                            preserveAspectRatio=True)
 
-        p.showPage()  # Canvasに書き込み（改ページ）-------------------------------------------------
-        if Image.objects.filter(work_id=3).exists():  # 画像が紐づく場合
-            # 作品に紐づく画像パスを取得
-            image = Image.objects.values_list('image', flat=True).get(work_id=3)
-        else:
-            # No Imageパス
-            image = settings.MEDIA_URL + NO_IMAGE
+                # tableを描き出す位置を指定
+                table.wrapOn(p, 50 * mm, 50 * mm)
+                table.drawOn(p, 43 * mm, 160 * mm)
 
-        # 画像の描画
-        p.drawImage(ImageReader(image[1:]), 5, 530, width=580, height=280, mask='auto', preserveAspectRatio=True)
+            else:  # 奇数の場合
 
-        # キャプション情報
-        # 複数行の表を用意したい場合、二次元配列でデータを用意する
-        data = [
-            ['作品タイトル', '最後の晩餐', '価格','￥9,000,000,000,000.-'],
-            ['作者', 'レオナルド・ダ・ヴィンチ', '画材','油絵'],
-        ]
+                # 画像の描画
+                p.drawImage(ImageReader(image[1:]), 10, 120, width=580, height=280, mask='auto',
+                            preserveAspectRatio=True)
 
-        table = Table(data)
-        # TableStyleを使って、Tableの装飾をします
-        table.setStyle(TableStyle([
-            # 表で使うフォントとそのサイズを設定
-            ('FONT', (0, 0), (-1, -1), self.font_name, 9),
-            # 四角に罫線を引いて、0.5の太さで、色は黒
-            ('BOX', (0, 0), (-1, -1), 1, colors.black),
-            # 四角の内側に格子状の罫線を引いて、0.25の太さで、色は黒
-            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-            # セルの縦文字位置を、TOPにする
-            # 他にMIDDLEやBOTTOMを指定できるのでお好みで
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ]))
+                # tableを描き出す位置を指定
+                table.wrapOn(p, 50 * mm, 50 * mm)
+                table.drawOn(p, 43 * mm, 20 * mm)
 
-        # tableを描き出す位置を指定
-        table.wrapOn(p, 50 * mm, 10 * mm)
-        table.drawOn(p, 50 * mm, 160 * mm)
+                p.showPage()  # Canvasに書き込み（改ページ）
 
-
-        # Close the PDF object cleanly, and we're done.
-        p.showPage()  # Canvasに書き込み
+        if len(id_array) % 2 != 0:  # 出力作品数が奇数の場合
+            p.showPage()  # Canvasに書き込み
         p.save()  # ファイル保存
 
         self._draw(p)
