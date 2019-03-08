@@ -183,10 +183,10 @@ LOGIN_REDIRECT_URL = '/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # メール送信設定
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST = 'smtp.xxx.xxx'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'apikey'
-EMAIL_HOST_PASSWORD = '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'
+EMAIL_HOST_PASSWORD = 'xxxxx'
 EMAIL_USE_TLS = True # TLS (Transport Layer Security)設定
 DEFAULT_FROM_EMAIL = 'no_reply@agrione.co.jp' # メールのfrom
 
