@@ -17,6 +17,7 @@ class Work(models.Model):
 
     title = models.CharField(verbose_name='作品名', max_length=255)
     authorName = models.CharField(verbose_name='作者', max_length=255)
+    size = models.CharField(verbose_name='サイズ', max_length=255)
     material = models.CharField(verbose_name='画材', max_length=255)
     price = models.IntegerField(verbose_name='価格', max_length=255)
     # price = models.DecimalField(verbose_name='価格',max_digits=15, decimal_places=0)
@@ -32,8 +33,8 @@ class Work(models.Model):
     updated_at = models.DateTimeField(verbose_name='更新日時', auto_now=True)
 
     def __str__(self):
-        return self.title + ',' + self.authorName + ',' + self.material + ',' + self.price + ',' + self.memo \
-               + ',' + self.create_datetime.strftime('%Y/%m/%d %H:%M:%S')
+        return self.title + ',' + self.authorName + ',' + self.size + ',' + self.material + ',' + self.price\
+               + ',' + self.memo + ',' + self.create_datetime.strftime('%Y/%m/%d %H:%M:%S')
 
     @staticmethod
     def get_absolute_url(self):

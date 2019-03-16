@@ -26,7 +26,7 @@ class WorkForm(forms.ModelForm):
 
     class Meta:
         model = Work
-        fields = ('title','authorName','material','price','memo','create_datetime','author',)
+        fields = ('title','authorName','size','material','price','memo','create_datetime','author',)
 
         title = forms.CharField(
             initial='',
@@ -37,6 +37,12 @@ class WorkForm(forms.ModelForm):
         authorName = forms.CharField(
             initial='',
             label='作者',
+            required=True,  # 必須
+            max_length=255,
+        )
+        size = forms.CharField(
+            initial='',
+            label='サイズ',
             required=True,  # 必須
             max_length=255,
         )
@@ -152,7 +158,7 @@ class WorkSetForm(SuperModelForm):
 
     class Meta:
         model = Work
-        fields = ('title', 'authorName', 'material', 'price', 'memo', 'create_datetime', 'author',)
+        fields = ('title', 'authorName', 'size', 'material', 'price', 'memo', 'create_datetime', 'author',)
 
         title = forms.CharField(
             initial='',
@@ -163,6 +169,12 @@ class WorkSetForm(SuperModelForm):
         authorName = forms.CharField(
             initial='',
             label='作者',
+            required=True,  # 必須
+            max_length=255,
+        )
+        size = forms.CharField(
+            initial='',
+            label='サイズ',
             required=True,  # 必須
             max_length=255,
         )

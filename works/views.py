@@ -225,6 +225,7 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
         work = Work()
         work.title = form.instance.title
         work.authorName = form.instance.authorName
+        work.size = form.instance.size
         work.material = form.instance.material
         work.price = form.instance.price
         work.memo = form.instance.memo
@@ -405,8 +406,9 @@ class BasicPdf(LoginRequiredMixin, generic.View):
                 price = "非売品"
 
             data = [
-                ['タイトル', workInfo.title, '価格', price],
+                ['タイトル', workInfo.title, 'サイズ', workInfo.size],
                 ['作者', workInfo.authorName, '画材', workInfo.material],
+                ['価格', price, 'メモ', workInfo.memo],
             ]
 
             # table = Table(data)
@@ -419,11 +421,13 @@ class BasicPdf(LoginRequiredMixin, generic.View):
                 ('BOX', (0, 0), (-1, -1), 1, colors.black),
                 # 四角の内側に格子状の罫線を引いて、0.25の太さで、色は黒
                 ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                # セルの結合
+                #('SPAN', (2, 2), (3, 2)),
                 # セルの縦文字位置
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ('TEXTCOLOR', (0, 0), (0, 1), colors.darkblue),
-                ('TEXTCOLOR', (2, 0), (2, 1), colors.darkblue),
+                ('TEXTCOLOR', (0, 0), (0, 2), colors.darkblue),
+                ('TEXTCOLOR', (2, 0), (2, 2), colors.darkblue),
             ]))
 
             if work_count % 2 == 0:  # 偶数の場合
@@ -439,12 +443,12 @@ class BasicPdf(LoginRequiredMixin, generic.View):
             else:  # 奇数の場合
 
                 # 画像の描画
-                p.drawImage(ImageReader(image[1:]), 10, 120, width=580, height=280, mask='auto',
+                p.drawImage(ImageReader(image[1:]), 10, 130, width=580, height=280, mask='auto',
                             preserveAspectRatio=True)
 
                 # tableを描き出す位置を指定
                 table.wrapOn(p, 50 * mm, 50 * mm)
-                table.drawOn(p, 43 * mm, 20 * mm)
+                table.drawOn(p, 43 * mm, 19 * mm)
 
                 p.showPage()  # Canvasに書き込み（改ページ）
 

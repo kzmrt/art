@@ -36,6 +36,16 @@
             </div>
         </div>
 
+        {{ form.size.errors }}
+        <div class="form-group form-inline">
+            <label class="col-offset-1 col-3 control-label">
+                {{ form.size.label_tag }}
+            </label>
+            <div class="">
+                {{ form.size }}
+            </div>
+        </div>
+
         {{ form.material.errors }}
         <div class="form-group form-inline">
             <label class="col-offset-1 col-3 control-label">
