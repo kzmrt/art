@@ -41,7 +41,7 @@
             <div id="checkbox-container">
             <table class="table table-hover table-bordered">
                 <tr>
-                    <th><button class="btn_a"></button></th>
+                    <th><input type="checkbox" id="checkall" /></th>
                     <th>作品タイトル</th>
                     <th>作者</th>
                     <th>画材</th>
@@ -52,7 +52,7 @@
                     {% csrf_token %}
                     {% for work in object_list %}
                         <tr>
-                            <td width="3%"><input type="checkbox" value="{{ work.pk }}" name="checks[]" id="{{ work.pk }}"></td>
+                            <td width="3%"><input type="checkbox" value="{{ work.pk }}" name="checks[]" id="{{ work.pk }}" class="checkbox"></td>
                             <td width="24%"><a href="{% url 'works:detail' work.pk %}">{{ work.title }}</a></td>
                             <td width="24%">{{ work.authorName }}</td>
                             <td width="24%">{{ work.material }}</td>
@@ -116,46 +116,47 @@
         // チェックボックス関連処理
         var formValues = JSON.parse(localStorage.getItem('formValues')) || {};
         var $checkboxes = $("#checkbox-container :checkbox");
-        var $button = $("#checkbox-container button"); // すべて選択
-
         function allChecked(){
           return $checkboxes.length === $checkboxes.filter(":checked").length;
         }
-
-        function updateButtonStatus(){
-          $button.text(allChecked()? "" : "");  // 全て選択ボタンのON,OFF文字表示
-        }
-
-        function handleButtonClick(){
-          $checkboxes.prop("checked", allChecked()? false : true)
-        }
-
         function updateStorage(){
           $checkboxes.each(function(){
             formValues[this.id] = this.checked;
           });
-
-          formValues["buttonText"] = $button.text();
           localStorage.setItem("formValues", JSON.stringify(formValues));
         }
-
-        $button.on("click", function() {
-          handleButtonClick();
-          updateButtonStatus();
-          updateStorage();
-        });
-
         $checkboxes.on("change", function(){
-          updateButtonStatus();
           updateStorage();
         });
-
         // On page load
         $.each(formValues, function(key, value) {
           $("#" + key).prop('checked', value);
         });
-
-        $button.text(formValues["buttonText"]);
+        // CheckAll
+        $(document).ready(function(){
+            // Check or Uncheck All checkboxes
+            $("#checkall").change(function(){
+                var checked = $(this).is(':checked');
+                if(checked){
+                    $(".checkbox").each(function(){
+                      $(this).prop("checked",true);
+                    });
+                }else{
+                    $(".checkbox").each(function(){
+                      $(this).prop("checked",false);
+                    });
+                }
+                updateStorage();
+            });
+            // Changing state of CheckAll checkbox
+            $(".checkbox").click(function(){
+                if($(".checkbox").length == $(".checkbox:checked").length) {
+                    $("#checkall").prop("checked", true);
+                } else {
+                    $("#checkall").removeAttr("checked");
+                }
+            });
+        });
     </script>
 </div>
 
