@@ -362,7 +362,7 @@ footer {
 }
 
 /* フォーム入力 */
-#id_title, #id_authorName, #id_material, #id_price, #id_memo {
+#id_title, #id_authorName, #id_material, #id_size ,#id_price, #id_memo {
     width: 280px;
     height: 32px;
 }
