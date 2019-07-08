@@ -10,7 +10,7 @@ Requirement
 ===========
 
 :Python: 3.7.0
-:Django: 2.2.3
+:Django: 2.2.2
 :django-bootstrap4: 0.0.7
 :django-bootstrap-datepicker-plus: 3.0.5
 :django-superform: 0.3.1
