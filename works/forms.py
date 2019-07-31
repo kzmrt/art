@@ -198,7 +198,8 @@ class WorkSetForm(SuperModelForm):
         )
         widgets = {
             'create_datetime': datetimepicker.DateTimePickerInput(
-                format='%Y-%m-%d',
+                # format='%Y-%m-%d',
+                format='%Y/%m/%d',
                 attrs={'readonly': 'true'},
                 options={
                     'locale': 'ja',
