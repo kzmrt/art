@@ -10,12 +10,12 @@ Requirement
 ===========
 
 :Python: 3.7.0
-:Django: 2.2.3
+:Django: 2.2.4
 :django-bootstrap4: 0.0.8
 :django-bootstrap-datepicker-plus: 3.0.5
 :django-superform: 0.3.1
 :Pillow: 6.1.0
-:pytz: 2019.1
+:pytz: 2019.2
 
 Quick start
 ===========
