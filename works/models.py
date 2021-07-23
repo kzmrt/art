@@ -33,7 +33,7 @@ class Work(models.Model):
     updated_at = models.DateTimeField(verbose_name='更新日時', auto_now=True)
 
     def __str__(self):
-        return self.title + ',' + self.authorName + ',' + self.size + ',' + self.material + ',' + self.price\
+        return self.title + ',' + self.authorName + ',' + self.size + ',' + self.material + ',' + str(self.price)\
                + ',' + self.memo + ',' + self.create_datetime.strftime('%Y/%m/%d %H:%M:%S')
 
     @staticmethod

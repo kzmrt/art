@@ -206,7 +206,7 @@ class WorkSetForm(SuperModelForm):
                     'dayViewHeaderFormat': 'YYYY年 MMMM',
                     'ignoreReadonly': True,
                     'allowInputToggle': True,
-                    'maxDate': (dt.now() + timedelta(days=1)).strftime('%Y/%m/%d'),  # 最大日時（翌日）
+                    # 'maxDate': (dt.now() + timedelta(days=1)).strftime('%Y/%m/%d'),  # 最大日時（翌日）
                     # 'defaultDate': (dt.now() + timedelta(days = -1)).strftime('%Y/%m/%d %H:%M:%S'), # 初期値はmodelで定義した値が採用される
                 }
             ),
