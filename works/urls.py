@@ -19,6 +19,9 @@ urlpatterns = [
     # 削除画面
     path('delete/<int:pk>/', views.DeleteView.as_view(), name='delete'),
 
+    # CSV出力
+    path('csv/', views.BasicCsv.as_view(), name='csv'),
+
     # PDF出力
     path('pdf/', views.BasicPdf.as_view(), name='pdf'),
 

@@ -1,3 +1,4 @@
+import openpyxl
 from django.shortcuts import render, redirect, reverse
 from django.views import generic
 from .models import Work, CustomUser, Image
@@ -27,10 +28,12 @@ from reportlab.lib.units import mm
 from reportlab.platypus import Table
 from reportlab.platypus import TableStyle
 from reportlab.lib import colors
+from openpyxl.writer.excel import save_virtual_workbook
 
 logger = logging.getLogger('development')
 
 NO_IMAGE = '/image/noimage.jpg'  # NO IMAGEパス
+TEMPLATE_EXCEL = '/excel/template.xlsx'  # Template.xlsxパス
 
 
 class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
@@ -51,6 +54,11 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
 
         if self.request.POST.get('search', None):  # 検索ボタンが押された場合
             logger.debug("検索")
+
+        elif self.request.POST.get('csv', None):  # キャプション情報出力ボタンが押された場合
+            logger.debug("キャプション情報出力")
+            return HttpResponseRedirect(reverse('works:csv'))  # CSV出力へリダイレクト
+
         else:  # PDF出力ボタンが押された場合
             logger.debug("PDF出力")
             check_value =[
@@ -126,6 +134,10 @@ class SearchView(LoginRequiredMixin, generic.ListView, ModelFormMixin):
         ).end_of('term')
 
         context['calendar_form'] = calendar_form
+
+        # No Imageパス
+        no_image = settings.MEDIA_URL + NO_IMAGE
+        context['no_image'] = no_image
 
         return context
 
@@ -338,6 +350,51 @@ class DeleteView(TestMixin1, generic.DeleteView):
         messages.success(
             self.request, '「{}」を削除しました。'.format(self.object))
         return result
+
+
+class BasicCsv(LoginRequiredMixin, generic.View):
+    """
+    キャプション情報のダウンロード
+    """
+    filename = 'art_work_list.xlsx'  # 出力ファイル名
+
+    def get(self, request, *args, **kwargs):
+        # Template.xlsxパス
+        template_xlsx = settings.MEDIA_ROOT + TEMPLATE_EXCEL
+        wb = openpyxl.load_workbook(template_xlsx)  # テンプレートの読み込み
+        sheet = wb['data']  # sheetの選択
+
+        # 全ての作品情報を出力する。（検索結果は無関係）
+        id_array = list(Work.objects.all().values_list('pk', flat=True))
+
+        for work_count, work_id in enumerate(id_array):
+
+            # キャプション情報
+            captionInfo = Work.objects.filter(pk=work_id).first()
+
+            # 複数行の表を用意したい場合、二次元配列でデータを用意する
+            if captionInfo.price > 0:
+                price = "￥{:,d}.-".format(captionInfo.price)
+            elif captionInfo.price <= -100:
+                price = "SOLD OUT"
+            else:
+                price = "非売品"
+
+            sheet["A{:,d}".format(work_count + 2)] = captionInfo.title       # タイトル
+            sheet["B{:,d}".format(work_count + 2)] = captionInfo.authorName  # 作者
+            sheet["C{:,d}".format(work_count + 2)] = captionInfo.size        # サイズ
+            sheet["D{:,d}".format(work_count + 2)] = captionInfo.material    # 画材
+            sheet["E{:,d}".format(work_count + 2)] = price                   # 価格
+            sheet["F{:,d}".format(work_count + 2)] = captionInfo.memo        # メモ
+
+        # CSV出力
+        response = HttpResponse(status=200, content=save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(self.filename)  # ダウンロードする場合
+
+        return response
+
+    def _draw(self, p):
+        pass
 
 
 class BasicPdf(LoginRequiredMixin, generic.View):

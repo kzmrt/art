@@ -33,6 +33,12 @@
     {% if object_list|length > 0 %}
         <input class="btn btn-outline-primary btn-sm" type="submit" id="pdf" name="pdf" value="PDF出力">
     {% endif %}
+    {% if user.is_superuser %}
+    <form method="post"target="_blank" style="display: inline">
+        {% csrf_token %}
+        <input class="btn btn-outline-primary btn-sm" type="submit" id="csv" name="csv" value="キャプション情報出力">
+    </form>
+    {% endif %}
 
     <section class="post-list">
         {% if object_list|length == 0 %}
@@ -64,7 +70,12 @@
                                     </a>
                                 </td>
                             {% else %}
-                                <td width="25%">－</td>
+                                <!-- <td width="25%">－</td> -->
+                                <td width="25%">
+                                    <a href="{{ no_image }}" data-lightbox="image-1" data-title="{{ work.title }}">
+                                        <img src="{{ no_image }}" alt={{ work.title }} width="100%" height="100%" border="0" />
+                                    </a>
+                                </td>
                             {% endif %}
                         </tr>
                     {% endfor %}
