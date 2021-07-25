@@ -437,8 +437,16 @@ class BasicPdf(LoginRequiredMixin, generic.View):
         else:
             logger.debug("チェックなし")
 
-            # 全ての作品情報を出力する。（検索結果は無関係）
-            id_array = list(Work.objects.all().values_list('pk', flat=True))
+            current_user = self.request.user
+            if current_user.is_superuser:
+                # 管理者の場合、すべて出力する。
+                logger.debug('管理者です。')
+                # 全ての作品情報を出力する。（検索結果は無関係）
+                id_array = list(Work.objects.all().values_list('pk', flat=True))
+            else:
+                # 一般ユーザーの場合、自分の作品のみ出力する。
+                logger.debug('一般ユーザーです。')
+                id_array = list(Work.objects.filter(author=current_user.id).values_list('pk', flat=True))
 
         for work_count, work_id in enumerate(id_array):
 

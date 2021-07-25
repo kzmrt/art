@@ -106,6 +106,16 @@
                     {{ form.author }}
                 </div>
             </div>
+        {% else %}
+            {{ form.author.errors }}
+            <div class="form-group form-inline" hidden>
+                <label class="col-offset-1 col-3 control-label">
+                    {{ form.author.label_tag }}
+                </label>
+                <div class="">
+                    {{ form.author }}
+                </div>
+            </div>
         {% endif %}
 
         <div class="btn-toolbar justify-content-center" role="toolbar" aria-label="ボタングループのツールバー">
